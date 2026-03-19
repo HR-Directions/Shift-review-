@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>تقرير تسليم الخزينة - طباعة حرارية</title>
+
 <style>
 body{font-family:Tahoma;background:#eef2f7;margin:0;padding:0;text-align:center;}
 .container{max-width:1400px;margin:auto;}
@@ -27,7 +28,6 @@ cursor:pointer;font-size:16px;
 
 .footerBox{display:flex;justify-content:center;gap:50px;margin-top:5px;font-weight:bold;font-size:14px;}
 
-.detailsTable{margin-top:5px;text-align:center;}
 .detailsTable th, .detailsTable td{border:1px solid #000;padding:4px;font-size:13px;}
 
 .infoTable{width:60%;margin:auto;margin-bottom:5px;}
@@ -51,6 +51,8 @@ body{width:80mm;margin:0;padding:0;}
 <input type="number" id="drawerSearch" placeholder="رقم الدرج">
 <button onclick="loadTreasury()">عرض</button>
 </div>
+
+<div id="summaryBox" class="card"></div>
 
 <div class="card">
 <table>
@@ -83,29 +85,71 @@ const db=firebase.database();
 let current=null;
 const sum=(arr)=> (arr||[]).reduce((a,b)=>a+Number(b.amount||0),0);
 
+// الفروع
 db.ref("branches").once("value").then(snap=>{
 snap.forEach(b=>{
-branchSelect.innerHTML+=`<option value="${b.key}" data-logo="https://lh3.googleusercontent.com/pw/AP1GczMmWcnkdN5X7Nj-T43iWXvYyNhrirKQUTagxX1MJmzD5N-aqmT4rYu5ESgMSpxbOZT5b_c61iTF2eU2pYkhlBFrz7lpqYWh0Nm7VEQlpHCXJ0MJVLFjUA0j5gWaaIgprthGb8NmlZL_hpWFzZTdUFAl=w2499-h2499-s-no-gm?authuser=0">${b.val().name}</option>`;
+branchSelect.innerHTML+=`<option value="${b.key}">${b.val().name}</option>`;
 });
 });
 
+// فلترة + إجماليات
 function loadTreasury(){
 treasuryTable.innerHTML="";
+summaryBox.innerHTML="";
+
+let selectedDate = dateSelect.value;
+let drawerVal = drawerSearch.value;
+
 db.ref("treasury").once("value").then(snap=>{
+
+let cashTotal=0, instaTotal=0, walletTotal=0, visaTotal=0;
+let instaCount=0, walletCount=0, visaCount=0;
+
 snap.forEach(s=>{
 let t=s.val();
+
+if(selectedDate && t.date !== selectedDate) return;
+if(drawerVal && t.drawer != drawerVal) return;
+
 let tr=document.createElement("tr");
 tr.innerHTML=`<td>${t.drawer}</td><td>${t.date}</td><td>${t.day}</td><td>${t.branchName}</td><td>${t.total}</td>`;
 tr.onclick=()=>{current=t;showDetails(t);}
 treasuryTable.appendChild(tr);
+
+cashTotal += Number(t.cash||0);
+instaTotal += sum(t.insta);
+instaCount += (t.insta||[]).length;
+walletTotal += sum(t.wallet);
+walletCount += (t.wallet||[]).length;
+visaTotal += sum(t.visa);
+visaCount += (t.visa||[]).length;
 });
+
+summaryBox.innerHTML=`
+<table class="detailsTable">
+<tr>
+<th>نقدي</th>
+<th>انستا</th><th>عدد</th>
+<th>محفظة</th><th>عدد</th>
+<th>فيزا</th><th>عدد</th>
+<th>الإجمالي العام</th>
+</tr>
+
+<tr>
+<td>${cashTotal}</td>
+<td>${instaTotal}</td><td>${instaCount}</td>
+<td>${walletTotal}</td><td>${walletCount}</td>
+<td>${visaTotal}</td><td>${visaCount}</td>
+<td>${cashTotal + instaTotal + walletTotal}</td>
+</tr>
+</table>
+`;
 });
 }
 
+// عرض التفاصيل (زي ما كان)
 function showDetails(t){
 detailsContainer.style.display="block";
-const branchOption=branchSelect.selectedOptions[0];
-const logo=branchOption.getAttribute("data-logo");
 
 function tableHtml(title, arr, type){
 if(!arr || arr.length==0) return "";
@@ -128,7 +172,6 @@ let diffClass=t.diff<0?"diffNegative":"diffPositive";
 
 let html=`
 <div class="headerBox">
-<img src="${logo}" class="logo">
 <div class="branchName">فرع: ${t.branchName}</div>
 </div>
 
@@ -160,44 +203,46 @@ html+=`<div class="footerBox"><div>المسؤول: ${t.drawerManager||""}</div><
 document.getElementById("details").innerHTML=html;
 }
 
+// ✅ الطباعة (التعديل فقط هنا)
 function printReceipt(){
 if(!current) return alert("اختر شفت");
 
-const branchOption=branchSelect.selectedOptions[0];
-const logo=branchOption.getAttribute("data-logo");
-
 function tablePrint(title, arr, type){
 if(!arr || arr.length==0) return "";
-let t=`<h4>${title}</h4><table style="width:100%;text-align:center;font-size:12px;border-collapse:collapse;">`;
+
+let t=`<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;font-size:13px;margin-top:5px">`;
+t+=`<tr><th colspan="3">${title}</th></tr>`;
+
 if(type=="insta"||type=="wallet"){t+=`<tr><th>المبلغ</th><th>رقم</th><th>اسم</th></tr>`;}
 if(type=="visa"){t+=`<tr><th>المبلغ</th><th>ترحيلة</th></tr>`;}
 if(type=="exp"){t+=`<tr><th>المبلغ</th><th>سبب</th><th>مسؤول</th></tr>`;}
+
 arr.forEach(i=>{
 t+=`<tr>`;
 if(type=="insta"||type=="wallet"){t+=`<td>${i.amount}</td><td>${i.mobile||""}</td><td>${i.name||""}</td>`;}
 if(type=="visa"){t+=`<td>${i.amount}</td><td>${i.ref||""}</td>`;}
 if(type=="exp"){t+=`<td>${i.amount}</td><td>${i.note||""}</td><td>${i.user||i.employee||""}</td>`;}
-t+=`</tr>`;});
-t+=`</table><b>الإجمالي: ${sum(arr)}</b><br>`;
+t+=`</tr>`;
+});
+
+t+=`<tr><td colspan="3"><b>الإجمالي: ${sum(arr)}</b></td></tr></table>`;
 return t;
 }
 
-let diffClass=current.diff<0?"diffNegative":"diffPositive";
+let html=`
+<body style="font-family:monospace;width:80mm;padding:5px;text-align:center">
 
-let htmlPrint=`
-<body style="font-family:monospace;width:80mm;margin:0;padding:5px;text-align:center">
+<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center">
+<tr><th colspan="3">الفرع</th></tr>
+<tr><td colspan="3">${current.branchName}</td></tr>
+</table>
 
-<img src="${logo}" width="60" style="display:block;margin:auto">
-<div>فرع: ${current.branchName}</div>
-
-<table style="width:100%;text-align:center;margin:auto;border-collapse:collapse;">
-<tr><th>اليوم</th><th>التاريخ</th><th>رقم الدرج</th></tr>
+<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;margin-top:5px">
+<tr><th>اليوم</th><th>التاريخ</th><th>الدرج</th></tr>
 <tr><td>${current.day}</td><td>${current.date}</td><td>${current.drawer}</td></tr>
 </table>
 
-<hr style="border:1px dashed #000;margin:5px 0;">
-
-<table style="width:100%;text-align:center;font-size:14px;border-collapse:collapse;">
+<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;margin-top:5px">
 <tr><th>الحركة</th><th>القيمة</th></tr>
 <tr><td>نقدي</td><td>${current.cash||0}</td></tr>
 <tr><td>انستا</td><td>${sum(current.insta)}</td></tr>
@@ -205,7 +250,7 @@ let htmlPrint=`
 <tr><td>فيزا</td><td>${sum(current.visa)}</td></tr>
 <tr><td>فعلي</td><td>${current.actual||0}</td></tr>
 <tr><td>الإجمالي</td><td>${current.total||0}</td></tr>
-<tr><td>الفرق</td><td class="${diffClass}">${current.diff||0}</td></tr>
+<tr><td>الفرق</td><td>${current.diff||0}</td></tr>
 </table>
 
 ${tablePrint("انستا",current.insta,"insta")}
@@ -214,18 +259,16 @@ ${tablePrint("فيزا",current.visa,"visa")}
 ${tablePrint("مشتريات",current.purchases,"exp")}
 ${tablePrint("مصروفات",current.expenses,"exp")}
 
-<hr style="border:1px dashed #000;margin:5px 0;">
-
-<div style="display:flex;justify-content:center;gap:20px;font-weight:bold;font-size:14px;">
-<div>المسؤول: ${current.drawerManager||""}</div>
-<div>المراجع: ${current.reviewer||""}</div>
-</div>
+<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;margin-top:5px">
+<tr><th>المسؤول</th><th>المراجع</th></tr>
+<tr><td>${current.drawerManager||""}</td><td>${current.reviewer||""}</td></tr>
+</table>
 
 </body>
 `;
 
 let w=window.open("");
-w.document.write(htmlPrint);
+w.document.write(html);
 w.document.close();
 w.print();
 }
