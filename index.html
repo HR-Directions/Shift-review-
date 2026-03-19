@@ -3,12 +3,13 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تقرير تسليم الخزينة - رسيت حراري</title>
+<title>تقرير تسليم الخزينة</title>
 <style>
 body{font-family:Tahoma;background:#eef2f7;margin:0;padding:0;text-align:center;}
 .container{max-width:1400px;margin:auto;}
 .card{background:#fff;padding:15px;border-radius:12px;margin-bottom:15px;text-align:center;}
 select,input{padding:6px;margin:2px;text-align:center;font-size:14px;}
+button{padding:6px 10px;margin:2px;font-size:14px;cursor:pointer;}
 
 table{width:100%;border-collapse:collapse;margin-top:5px;}
 th,td{text-align:center;padding:4px;font-size:14px;border:1px solid #000;}
@@ -21,15 +22,12 @@ th,td{text-align:center;padding:4px;font-size:14px;border:1px solid #000;}
 .diffPositive{color:green;font-weight:bold;}
 .diffNegative{color:red;font-weight:bold;}
 
+.detailsTable th, .detailsTable td{text-align:center;padding:4px;border:1px solid #000;font-size:13px;}
+.infoTable th, .infoTable td{text-align:center;padding:3px;border:1px solid #000;font-size:14px;}
+
 .footerBox{display:flex;justify-content:center;gap:20px;margin-top:10px;font-weight:bold;font-size:14px;}
 
-.detailsTable{margin-top:5px;text-align:center;border:1px solid #000;}
-.detailsTable th, .detailsTable td{border:1px solid #000;padding:4px;font-size:13px;text-align:center;}
-
-.infoTable{width:60%;margin:auto;margin-bottom:5px;border:1px solid #000;}
-.infoTable th, .infoTable td{padding:3px;font-size:14px;border:1px solid #000;text-align:center;}
-
-.logo{width:80px; display:block; margin:auto; margin-bottom:5px;}
+.logo{width:80px;display:block;margin:auto;margin-bottom:5px;}
 </style>
 </head>
 <body>
@@ -41,10 +39,12 @@ th,td{text-align:center;padding:4px;font-size:14px;border:1px solid #000;}
 <select id="branchSelect"></select>
 <input type="date" id="dateSelect">
 <input type="number" id="drawerSearch" placeholder="رقم الدرج">
+<button onclick="loadTreasury()">عرض</button>
 </div>
 
 <div class="card summaryBox" id="summary"></div>
 
+<!-- التقرير كما هو بدون أي تعديل -->
 <div class="card">
 <table>
 <thead>
@@ -56,6 +56,7 @@ th,td{text-align:center;padding:4px;font-size:14px;border:1px solid #000;}
 </table>
 </div>
 
+<!-- تفاصيل الرسيت -->
 <div id="detailsContainer" class="card" style="display:none;">
 <div id="details"></div>
 <button class="printBtn" onclick="printReceipt()">🖨 طباعة الرسيت</button>
@@ -81,7 +82,6 @@ branchSelect.innerHTML+=`<option value="${b.key}" data-name="${data.name}" data-
 });
 });
 
-// فلترة تلقائية
 branchSelect.onchange = loadTreasury;
 dateSelect.onchange = loadTreasury;
 drawerSearch.oninput = loadTreasury;
@@ -192,7 +192,7 @@ w.document.write(`<html dir="rtl"><head><title>طباعة الرسيت</title>
 body{font-family:Tahoma;width:80mm;margin:0;padding:5px;text-align:center;font-size:13px;}
 table{width:100%;border-collapse:collapse;}
 th,td{text-align:center;border:1px solid #000;padding:4px;}
-.logo{width:80px; display:block; margin:auto; margin-bottom:5px;}
+.logo{width:80px;display:block;margin:auto;margin-bottom:5px;}
 .footerBox{display:flex;justify-content:center;gap:20px;margin-top:10px;font-weight:bold;font-size:14px;}
 </style></head><body>${content}</body></html>`);
 w.document.close();
