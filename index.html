@@ -237,12 +237,12 @@ let html=`
 <tr><td colspan="3">${current.branchName}</td></tr>
 </table>
 
-<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;margin-top:5px">
+<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;margin-top:7px">
 <tr><th>اليوم</th><th>التاريخ</th><th>رقم الدرج</th></tr>
 <tr><td>${current.day}</td><td>${current.date}</td><td>${current.drawer}</td></tr>
 </table>
 
-<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;margin-top:24px">
+<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;font-size:15px;margin-top:15px">
 <tr><th>الحركة</th><th>القيمة</th></tr>
 <tr><td>نقدي</td><td>${current.cash||0}</td></tr>
 <tr><td>انستا</td><td>${sum(current.insta)}</td></tr>
