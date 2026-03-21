@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تقرير تسليم الخزينة-v1.0</title>
+<title>تقرير تسليم الخزينة-v1.1</title>
 
 <style>
 body{font-family:Tahoma;background:#eef2f7;margin:0;padding:0;text-align:center;}
@@ -237,7 +237,7 @@ let html=`
 <tr><td colspan="3">${current.branchName}</td></tr>
 </table>
 
-<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;margin-top:12px">
+<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;font-size:15px;margin-top:12px">
 <tr><th>اليوم</th><th>التاريخ</th><th>رقم الدرج</th></tr>
 <tr><td>${current.day}</td><td>${current.date}</td><td>${current.drawer}</td></tr>
 </table>
@@ -259,7 +259,7 @@ ${tablePrint("فيزا",current.visa,"visa")}
 ${tablePrint("مشتريات",current.purchases,"exp")}
 ${tablePrint("مصروفات",current.expenses,"exp")}
 
-<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;margin-top:12px">
+<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;font-size:15px;margin-top:12px">
 <tr><th>مسؤول الدرج</th><th>المراجع</th></tr>
 <tr><td>${current.drawerManager||""}</td><td>${current.reviewer||""}</td></tr>
 </table>
