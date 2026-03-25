@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة الخزينة v5.6 - المستقرة</title>
+    <title>نظام إدارة الخزينة v5.6 - البيانات الدقيقة</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -81,14 +81,14 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-black text-slate-800">إدارة الخزينة v5.6</h1>
-                <p class="text-slate-500 font-bold text-xs uppercase">نظام مراجعة البيانات والتقارير المجمعة</p>
+                <p class="text-slate-500 font-bold text-xs">مطابقة البيانات حسب قاعدة البيانات الأصلية</p>
             </div>
             <button onclick="fetchData()" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black shadow-lg transition-all active:scale-95">
                 🔄 تحديث البيانات
             </button>
         </header>
 
-        <!-- كروت الإحصائيات -->
+        <!-- الإحصائيات -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-3xl shadow-sm border-r-8 border-blue-600">
                 <span class="text-slate-400 text-[10px] font-black uppercase">إجمالي الكاش</span>
@@ -131,25 +131,25 @@
             </div>
             <div class="w-32">
                 <label class="block text-[10px] font-black text-slate-500 mb-1">رقم الدرج</label>
-                <input type="number" id="fDrawer" placeholder="الدرج" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold">
+                <input type="number" id="fDrawer" placeholder="رقم" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold">
             </div>
-            <button onclick="fetchData()" class="bg-slate-900 text-white px-10 py-3.5 rounded-2xl font-black hover:bg-black transition-all shadow-xl">بحث</button>
+            <button onclick="fetchData()" class="bg-slate-900 text-white px-10 py-3.5 rounded-2xl font-black hover:bg-black transition-all shadow-xl">تصفية البحث</button>
         </div>
 
-        <!-- الجدول الرئيسي -->
+        <!-- الجدول -->
         <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100 mb-6">
             <div class="overflow-x-auto">
                 <table class="w-full text-right">
                     <thead class="bg-slate-50 text-slate-400 text-[10px] font-black border-b border-slate-100">
                         <tr>
                             <th class="p-5 text-center"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" class="checkbox-custom"></th>
-                            <th class="p-5">الدرج</th>
+                            <th class="p-5">درج #</th>
                             <th class="p-5">الفرع</th>
                             <th class="p-5">التاريخ</th>
                             <th class="p-5">كاش</th>
                             <th class="p-5">الإجمالي</th>
                             <th class="p-5">الفرق</th>
-                            <th class="p-5 text-center">إجراء</th>
+                            <th class="p-5 text-center">الإجراء</th>
                         </tr>
                     </thead>
                     <tbody id="mainTableBody" class="divide-y divide-slate-50 font-bold text-slate-700"></tbody>
@@ -157,23 +157,18 @@
             </div>
         </div>
 
-        <!-- تفاصيل السجل المختارة -->
         <div id="detailsPanel" class="hidden bg-white p-8 rounded-3xl shadow-xl border-2 border-blue-100 mb-10 transition-all">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black text-blue-900">المعاينة التفصيلية</h3>
-                <button onclick="closeDetails()" class="text-slate-400 hover:text-red-500 font-bold">إغلاق ✖</button>
-            </div>
+            <h3 class="text-xl font-black text-blue-900 mb-6">المعاينة التفصيلية</h3>
             <div id="detailsContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </div>
 
-    <!-- الإجراءات المجمعة -->
+    <!-- الإجراءات العائمة -->
     <div id="bulkActions" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white p-4 rounded-3xl shadow-2xl flex items-center gap-6">
         <span id="selectedCount" class="text-sm font-black text-blue-400 px-4">0 مختارة</span>
-        <button onclick="generateDailyReport('print')" class="bg-blue-600 px-6 py-2 rounded-xl text-xs font-black hover:bg-blue-500 transition-colors">🖨️ طباعة تقرير مجمع</button>
+        <button onclick="generateDailyReport('print')" class="bg-blue-600 px-6 py-2 rounded-xl text-xs font-black hover:bg-blue-500">🖨️ طباعة تقرير مجمع</button>
     </div>
 
-    <!-- منطقة الطباعة (مخفية) -->
     <div id="thermalArea"></div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -184,7 +179,7 @@
     const db = firebase.database();
     
     const logoUrl = "https://lh3.googleusercontent.com/pw/AP1GczOHV-3gVfsqN_Y3nGe3v3khgZh8jnMiyzrIg6KECReqrTpnHFK4Adt-_QMyqjcqzy4a2XuXO-sHdgygcqRXcBg0jRmhi4K82oIia841B8vVLescBEqAtn2sZrGf5UO8AqKouvByzQKvoXET4XtjA7-t=w2499-h2499-s-no-gm?authuser=0";
-    const logoPreload = new Image(); logoPreload.src = logoUrl;
+    const preloadImg = new Image(); preloadImg.src = logoUrl;
 
     let fetchedRecords = [];
 
@@ -207,7 +202,7 @@
         const bF = document.getElementById("fBranch").value;
         const dF = document.getElementById("fDate").value;
         const drF = document.getElementById("fDrawer").value;
-        body.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-slate-300 font-bold">جاري المزامنة...</td></tr>`;
+        body.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-slate-300 font-bold">جاري تحديث البيانات...</td></tr>`;
 
         db.ref("treasury").once("value", s => {
             body.innerHTML = ""; fetchedRecords = [];
@@ -252,6 +247,44 @@
         });
     }
 
+    function showDetails(item, row) {
+        const panel = document.getElementById("detailsPanel");
+        const content = document.getElementById("detailsContent");
+        document.querySelectorAll("#mainTableBody tr").forEach(tr => tr.classList.remove('selected-row'));
+        row.classList.add('selected-row');
+        panel.classList.remove("hidden");
+        content.innerHTML = `
+            ${renderSubTableHTML("الفيزا", item.visa, 'visa')}
+            ${renderSubTableHTML("انستا باي", item.insta, 'trans')}
+            ${renderSubTableHTML("المحافظ", item.wallet, 'trans')}
+            ${renderSubTableHTML("المشتريات", item.purchases, 'exp')}
+            ${renderSubTableHTML("المصروفات", item.expenses, 'exp')}
+        `;
+        panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function renderSubTableHTML(title, arr, type) {
+        if(!arr || arr.length === 0) return `<div class="bg-slate-50 p-4 rounded-2xl text-center text-slate-400 font-bold">${title}: لا يوجد</div>`;
+        let h = `<div class="bg-white border rounded-2xl overflow-hidden shadow-sm">
+            <div class="bg-slate-800 text-white p-2 text-[10px] font-black text-center">${title}</div>
+            <table class="w-full text-[11px] text-right"><thead><tr class="bg-slate-50 border-b">`;
+        
+        if(type==='visa') h += `<th>باتش</th><th>مبلغ</th><th>ع</th>`;
+        else if(type==='trans') h += `<th>مبلغ</th><th>الرقم</th><th>صاحب الرقم</th>`;
+        else h += `<th>مبلغ</th><th>البيان</th><th>المستلم</th>`;
+        
+        h += `</tr></thead><tbody>`;
+        arr.forEach(x => {
+            h += `<tr class="border-b">`;
+            if(type==='visa') h += `<td>${x.batch}</td><td>${x.amount}</td><td>${x.count}</td>`;
+            else if(type==='trans') h += `<td>${x.amount}</td><td>${x.mobile||''}</td><td>${x.name||''}</td>`;
+            else h += `<td>${x.amount}</td><td>${x.note||''}</td><td>${x.user||''}</td>`;
+            h += `</tr>`;
+        });
+        h += `<tr class="bg-blue-50 font-black"><td>الإجمالي</td><td colspan="2" class="text-left">${sum(arr)}</td></tr></tbody></table></div>`;
+        return h;
+    }
+
     function toggleSelectAll(master) {
         document.querySelectorAll(".row-check").forEach(c => c.checked = master.checked);
         updateSelectedCount();
@@ -260,7 +293,7 @@
     function updateSelectedCount() {
         const count = document.querySelectorAll(".row-check:checked").length;
         const bulk = document.getElementById("bulkActions");
-        if(count > 0) { bulk.classList.remove("hidden"); document.getElementById("selectedCount").innerText = `${count} ورديات مختارة`; }
+        if(count > 0) { bulk.classList.remove("hidden"); document.getElementById("selectedCount").innerText = `${count} فروع مختارة`; }
         else { bulk.classList.add("hidden"); }
     }
 
@@ -304,25 +337,25 @@
             </div>
 
             <div style="text-align:center; font-weight:bold; font-size:11px; margin-bottom:8px;">
-                ${isAgg ? '--- تقرير مجمع ---' : `درج: #${d.drawer}`} | التاريخ: ${d.date}
+                ${isAgg ? '--- تقرير مالي مجمع ---' : `درج: #${d.drawer}`} | التاريخ: ${d.date}
             </div>
 
             <table class="receipt-table" style="font-size:14px;">
                 <tr style="background:#eee"><th>البيان</th><th>القيمة</th></tr>
-                <tr><td>إجمالي الكاش</td><td>${d.cash}</td></tr>
+                <tr><td>كاش</td><td>${d.cash}</td></tr>
                 <tr><td>انستا باي</td><td>${sum(d.insta)}</td></tr>
                 <tr><td>محافظ</td><td>${sum(d.wallet)}</td></tr>
                 <tr><td>فيزا مبيعات</td><td>${sum(d.visa)}</td></tr>
-                <tr style="background:#f0f0f0; font-size:17px;"><td>المبلغ الفعلي</td><td>${d.actual}</td></tr>
+                <tr style="background:#f0f0f0; font-size:17px;"><td>الفعلي</td><td>${d.actual}</td></tr>
                 <tr><td>إجمالي الحساب</td><td>${d.total}</td></tr>
                 <tr style="color:${+d.diff < 0 ? 'red' : 'green'}"><td>الفرق</td><td>${d.diff}</td></tr>
             </table>
 
-            ${renderSubTablePrint("تفاصيل انستا باي", d.insta, 'trans')}
-            ${renderSubTablePrint("تفاصيل المحافظ", d.wallet, 'trans')}
-            ${renderSubTablePrint("تفاصيل المشتريات", d.purchases, 'exp')}
-            ${renderSubTablePrint("تفاصيل المصروفات", d.expenses, 'exp')}
-            ${renderSubTablePrint("تفاصيل الفيزا", d.visa, 'visa')}
+            ${renderSubTablePrint("انستا باي", d.insta, 'trans')}
+            ${renderSubTablePrint("المحافظ", d.wallet, 'trans')}
+            ${renderSubTablePrint("المشتريات", d.purchases, 'exp')}
+            ${renderSubTablePrint("المصروفات", d.expenses, 'exp')}
+            ${renderSubTablePrint("الفيزا", d.visa, 'visa')}
 
             <div style="display:flex; justify-content:space-between; margin-top:15px; border-top:1.5px solid #000; padding-top:8px; font-size:10px; font-weight:bold;">
                 <div>المسؤول: ${d.drawerManager || '_______'}</div>
@@ -330,10 +363,10 @@
             </div>
             
             <div style="text-align:center; font-size:9px; margin-top:10px; border-top:1px dashed #ccc; padding-top:4px;">
-                 ${new Date().toLocaleString('ar-EG')}
+                النظام الموحد - ${new Date().toLocaleString('ar-EG')}
             </div>
         `;
-        setTimeout(() => { window.print(); }, 350);
+        setTimeout(() => { window.print(); }, 300);
     }
 
     function renderSubTablePrint(title, arr, type) {
@@ -359,3 +392,4 @@
 </script>
 </body>
 </html>
+
