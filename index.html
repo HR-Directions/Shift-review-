@@ -81,14 +81,16 @@
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-black text-slate-800">إدارة الخزينة v5.6</h1>
-                <p class="text-slate-500 font-bold text-xs">مطابقة البيانات حسب قاعدة البيانات الأصلية</p>
+                <p class="text-slate-500 font-bold text-xs uppercase">نظام مراجعة البيانات والتقارير المجمعة</p>
             </div>
-            <button onclick="fetchData()" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black shadow-lg transition-all active:scale-95">
-                🔄 تحديث البيانات
-            </button>
+            <div class="flex gap-2">
+                <button onclick="fetchData()" class="bg-blue-600 text-white px-8 py-3 rounded-2xl font-black shadow-lg transition-all active:scale-95">
+                    🔄 تحديث البيانات
+                </button>
+            </div>
         </header>
 
-        <!-- الإحصائيات -->
+        <!-- كروت الإحصائيات -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-3xl shadow-sm border-r-8 border-blue-600">
                 <span class="text-slate-400 text-[10px] font-black uppercase">إجمالي الكاش</span>
@@ -131,25 +133,25 @@
             </div>
             <div class="w-32">
                 <label class="block text-[10px] font-black text-slate-500 mb-1">رقم الدرج</label>
-                <input type="number" id="fDrawer" placeholder="رقم" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold">
+                <input type="number" id="fDrawer" placeholder="الدرج" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold">
             </div>
-            <button onclick="fetchData()" class="bg-slate-900 text-white px-10 py-3.5 rounded-2xl font-black hover:bg-black transition-all shadow-xl">تصفية البحث</button>
+            <button onclick="fetchData()" class="bg-slate-900 text-white px-10 py-3.5 rounded-2xl font-black hover:bg-black transition-all shadow-xl">بحث</button>
         </div>
 
-        <!-- الجدول -->
+        <!-- الجدول الرئيسي -->
         <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100 mb-6">
             <div class="overflow-x-auto">
                 <table class="w-full text-right">
                     <thead class="bg-slate-50 text-slate-400 text-[10px] font-black border-b border-slate-100">
                         <tr>
                             <th class="p-5 text-center"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" class="checkbox-custom"></th>
-                            <th class="p-5">درج #</th>
+                            <th class="p-5">الدرج</th>
                             <th class="p-5">الفرع</th>
                             <th class="p-5">التاريخ</th>
                             <th class="p-5">كاش</th>
                             <th class="p-5">الإجمالي</th>
                             <th class="p-5">الفرق</th>
-                            <th class="p-5 text-center">الإجراء</th>
+                            <th class="p-5 text-center">إجراء</th>
                         </tr>
                     </thead>
                     <tbody id="mainTableBody" class="divide-y divide-slate-50 font-bold text-slate-700"></tbody>
@@ -157,18 +159,23 @@
             </div>
         </div>
 
+        <!-- تفاصيل السجل المختارة -->
         <div id="detailsPanel" class="hidden bg-white p-8 rounded-3xl shadow-xl border-2 border-blue-100 mb-10 transition-all">
-            <h3 class="text-xl font-black text-blue-900 mb-6">المعاينة التفصيلية</h3>
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-black text-blue-900">المعاينة التفصيلية</h3>
+                <button onclick="closeDetails()" class="text-slate-400 hover:text-red-500 font-bold">إغلاق ✖</button>
+            </div>
             <div id="detailsContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
     </div>
 
-    <!-- الإجراءات العائمة -->
+    <!-- الإجراءات المجمعة -->
     <div id="bulkActions" class="hidden fixed bottom-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white p-4 rounded-3xl shadow-2xl flex items-center gap-6">
         <span id="selectedCount" class="text-sm font-black text-blue-400 px-4">0 مختارة</span>
-        <button onclick="generateDailyReport('print')" class="bg-blue-600 px-6 py-2 rounded-xl text-xs font-black hover:bg-blue-500">🖨️ طباعة تقرير مجمع</button>
+        <button onclick="generateDailyReport()" class="bg-blue-600 px-6 py-2 rounded-xl text-xs font-black hover:bg-blue-500 transition-colors">🖨️ طباعة تقرير مجمع</button>
     </div>
 
+    <!-- منطقة الطباعة (مخفية) -->
     <div id="thermalArea"></div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -179,7 +186,7 @@
     const db = firebase.database();
     
     const logoUrl = "https://lh3.googleusercontent.com/pw/AP1GczOHV-3gVfsqN_Y3nGe3v3khgZh8jnMiyzrIg6KECReqrTpnHFK4Adt-_QMyqjcqzy4a2XuXO-sHdgygcqRXcBg0jRmhi4K82oIia841B8vVLescBEqAtn2sZrGf5UO8AqKouvByzQKvoXET4XtjA7-t=w2499-h2499-s-no-gm?authuser=0";
-    const preloadImg = new Image(); preloadImg.src = logoUrl;
+    const logoPreload = new Image(); logoPreload.src = logoUrl;
 
     let fetchedRecords = [];
 
@@ -202,7 +209,7 @@
         const bF = document.getElementById("fBranch").value;
         const dF = document.getElementById("fDate").value;
         const drF = document.getElementById("fDrawer").value;
-        body.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-slate-300 font-bold">جاري تحديث البيانات...</td></tr>`;
+        body.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-slate-300 font-bold">جاري المزامنة...</td></tr>`;
 
         db.ref("treasury").once("value", s => {
             body.innerHTML = ""; fetchedRecords = [];
@@ -263,6 +270,11 @@
         panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
 
+    function closeDetails() {
+        document.getElementById("detailsPanel").classList.add("hidden");
+        document.querySelectorAll("#mainTableBody tr").forEach(tr => tr.classList.remove('selected-row'));
+    }
+
     function renderSubTableHTML(title, arr, type) {
         if(!arr || arr.length === 0) return `<div class="bg-slate-50 p-4 rounded-2xl text-center text-slate-400 font-bold">${title}: لا يوجد</div>`;
         let h = `<div class="bg-white border rounded-2xl overflow-hidden shadow-sm">
@@ -281,7 +293,11 @@
             else h += `<td>${x.amount}</td><td>${x.note||''}</td><td>${x.user||''}</td>`;
             h += `</tr>`;
         });
-        h += `<tr class="bg-blue-50 font-black"><td>الإجمالي</td><td colspan="2" class="text-left">${sum(arr)}</td></tr></tbody></table></div>`;
+        
+        let totalVal = sum(arr);
+        h += `<tr class="bg-blue-50 font-black"><td>الإجمالي</td><td colspan="2" class="text-left">${totalVal}</td></tr>`;
+        
+        h += `</tbody></table></div>`;
         return h;
     }
 
@@ -293,11 +309,11 @@
     function updateSelectedCount() {
         const count = document.querySelectorAll(".row-check:checked").length;
         const bulk = document.getElementById("bulkActions");
-        if(count > 0) { bulk.classList.remove("hidden"); document.getElementById("selectedCount").innerText = `${count} فروع مختارة`; }
+        if(count > 0) { bulk.classList.remove("hidden"); document.getElementById("selectedCount").innerText = `${count} ورديات مختارة`; }
         else { bulk.classList.add("hidden"); }
     }
 
-    function generateDailyReport(type) {
+    function generateDailyReport() {
         const selectedKeys = Array.from(document.querySelectorAll(".row-check:checked")).map(c => c.value);
         const selectedData = fetchedRecords.filter(r => selectedKeys.includes(r.key));
         if(selectedData.length === 0) return;
@@ -305,8 +321,7 @@
         let agg = {
             cash: 0, actual: 0, total: 0, diff: 0,
             insta: [], wallet: [], visa: [], purchases: [], expenses: [],
-            branchNames: new Set(), date: selectedData[0].date,
-            drawerManager: "مدير الفرع", reviewer: "المراجعة المالية"
+            branchNames: new Set(), date: selectedData[0].date, day: selectedData[0].day
         };
         selectedData.forEach(d => {
             agg.cash += (+d.cash||0); agg.actual += (+d.actual||0);
@@ -336,26 +351,31 @@
                 </div>
             </div>
 
-            <div style="text-align:center; font-weight:bold; font-size:11px; margin-bottom:8px;">
-                ${isAgg ? '--- تقرير مالي مجمع ---' : `درج: #${d.drawer}`} | التاريخ: ${d.date}
-            </div>
+            <!-- تم تعديل هذا السطر ليشمل اليوم بجانب التاريخ والدرج -->
+            <table class="receipt-table" style="margin-bottom:8px; border:none;">
+                <tr style="border:none;">
+                    <td style="border:1.5px solid #000;">اليوم: ${d.day || '---'}</td>
+                    <td style="border:1.5px solid #000;">التاريخ: ${d.date}</td>
+                    <td style="border:1.5px solid #000;">الدرج: ${isAgg ? 'مجمع' : `#${d.drawer}`}</td>
+                </tr>
+            </table>
 
             <table class="receipt-table" style="font-size:14px;">
                 <tr style="background:#eee"><th>البيان</th><th>القيمة</th></tr>
-                <tr><td>كاش</td><td>${d.cash}</td></tr>
+                <tr><td>إجمالي الكاش</td><td>${d.cash}</td></tr>
                 <tr><td>انستا باي</td><td>${sum(d.insta)}</td></tr>
                 <tr><td>محافظ</td><td>${sum(d.wallet)}</td></tr>
                 <tr><td>فيزا مبيعات</td><td>${sum(d.visa)}</td></tr>
-                <tr style="background:#f0f0f0; font-size:17px;"><td>الفعلي</td><td>${d.actual}</td></tr>
+                <tr style="background:#f0f0f0; font-size:17px;"><td>المبلغ الفعلي</td><td>${d.actual}</td></tr>
                 <tr><td>إجمالي الحساب</td><td>${d.total}</td></tr>
                 <tr style="color:${+d.diff < 0 ? 'red' : 'green'}"><td>الفرق</td><td>${d.diff}</td></tr>
             </table>
 
-            ${renderSubTablePrint("انستا باي", d.insta, 'trans')}
-            ${renderSubTablePrint("المحافظ", d.wallet, 'trans')}
-            ${renderSubTablePrint("المشتريات", d.purchases, 'exp')}
-            ${renderSubTablePrint("المصروفات", d.expenses, 'exp')}
-            ${renderSubTablePrint("الفيزا", d.visa, 'visa')}
+            ${renderSubTablePrint("تفاصيل انستا باي", d.insta, 'trans')}
+            ${renderSubTablePrint("تفاصيل المحافظ", d.wallet, 'trans')}
+            ${renderSubTablePrint("تفاصيل المشتريات", d.purchases, 'exp')}
+            ${renderSubTablePrint("تفاصيل المصروفات", d.expenses, 'exp')}
+            ${renderSubTablePrint("تفاصيل الفيزا", d.visa, 'visa')}
 
             <div style="display:flex; justify-content:space-between; margin-top:15px; border-top:1.5px solid #000; padding-top:8px; font-size:10px; font-weight:bold;">
                 <div>المسؤول: ${d.drawerManager || '_______'}</div>
@@ -386,10 +406,13 @@
             else h += `<td>${x.amount}</td><td>${x.note||''}</td><td>${x.user||''}</td>`;
             h += `</tr>`;
         });
-        h += `<tr style="background:#eee"><td>إجمالي</td><td colspan="2">${sum(arr)}</td></tr></tbody></table>`;
+        
+        let totalVal = sum(arr);
+        h += `<tr style="background:#eee"><td>إجمالي</td><td colspan="2">${totalVal}</td></tr>`;
+        
+        h += `</tbody></table>`;
         return h;
     }
 </script>
 </body>
 </html>
-
