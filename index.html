@@ -1,278 +1,288 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تقرير تسليم الخزينة-v1.2</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم الخزينة - الإصدار المطور</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Tajawal', sans-serif; background-color: #f8fafc; }
+        
+        /* تصميم الريسيت الحراري */
+        .receipt-container { display: none; width: 80mm; background: white; padding: 10px; color: black; border: 1px solid #ddd; margin: 20px auto; }
+        .receipt-header { text-align: center; border-bottom: 2px dashed #000; padding-bottom: 8px; margin-bottom: 10px; }
+        .receipt-row { display: flex; justify-content: space-between; font-size: 19px; margin-bottom: 5px; font-weight: 500; }
+        .receipt-bold { font-size: 26px; font-weight: 800; border-top: 2px solid #000; margin-top: 8px; padding-top: 5px; }
+        .receipt-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 14px; }
+        .receipt-table th { border-bottom: 1px solid #000; padding: 4px; }
+        .receipt-table td { padding: 4px; border-bottom: 1px solid #eee; text-align: center; }
+        
+        /* تلوين البطاقات */
+        .stat-card { transition: transform 0.2s; cursor: default; }
+        .stat-card:hover { transform: translateY(-3px); }
 
-<style>
-body{font-family:Tahoma;background:#eef2f7;margin:0;padding:0;text-align:center;}
-.container{max-width:1400px;margin:auto;}
-.card{background:#fff;padding:15px;border-radius:12px;margin-bottom:15px;text-align:center;}
-select,input,button{padding:6px;margin:2px;text-align:center;}
-
-table{width:100%;border-collapse:collapse;margin-top:5px;}
-th,td{text-align:center;padding:4px;font-size:14px;}
-
-.headerBox{text-align:center;margin-bottom:5px;}
-.logo{width:60px;display:block;margin:auto;}
-.branchName{font-weight:bold;margin-top:5px;font-size:16px;}
-
-.printBtn{
-background:#e67e22;color:#fff;border:none;padding:10px;margin-top:10px;width:100%;
-cursor:pointer;font-size:20px;
-}
-
-.diffPositive{color:green;font-weight:bold;}
-.diffNegative{color:red;font-weight:bold;}
-
-.footerBox{display:flex;justify-content:center;gap:50px;margin-top:5px;font-weight:bold;font-size:14px;}
-
-.detailsTable th, .detailsTable td{border:1px solid #000;padding:4px;font-size:13px;}
-
-.infoTable{width:60%;margin:auto;margin-bottom:5px;}
-.infoTable th, .infoTable td{padding:3px;font-size:20px;}
-
-@media print {
-body{width:80mm;margin:0;padding:0;}
-.printBtn{display:none;}
-}
-</style>
+        @media print {
+            body * { visibility: hidden; }
+            #receiptArea, #receiptArea * { visibility: visible; }
+            #receiptArea { position: absolute; left: 0; top: 0; width: 80mm; display: block !important; border: none; }
+            .no-print { display: none !important; }
+        }
+    </style>
 </head>
+<body class="p-4 md:p-6">
 
-<body>
-<div class="container">
+    <div class="max-w-7xl mx-auto no-print">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-3xl font-bold text-slate-900">الداش بورد الاحترافي</h1>
+                <p class="text-slate-500 mt-1">مراجعة مبيعات الفروع وتحليل العمليات</p>
+            </div>
+            <button onclick="fetchData()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2.5 rounded-xl font-bold shadow-lg shadow-indigo-200 flex items-center gap-2">
+                <span>🔄 تحديث البيانات</span>
+            </button>
+        </div>
 
-<h3>📊 تقرير تسليم الخزينة</h3>
+        <!-- Dashboard Stats Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
+            <!-- Cash Card -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border-r-4 border-blue-500 stat-card">
+                <div class="flex justify-between items-start">
+                    <p class="text-slate-500 text-sm font-bold">إجمالي النقدي</p>
+                    <span class="bg-blue-50 text-blue-600 p-2 rounded-lg text-xs">💸 Cash</span>
+                </div>
+                <h2 id="totalCash" class="text-2xl font-black text-slate-800 mt-2">0</h2>
+                <p class="text-xs text-slate-400 mt-1">المبلغ الصافي في الدرج</p>
+            </div>
 
-<div class="card">
-<select id="branchSelect"></select>
-<input type="date" id="dateSelect">
-<input type="number" id="drawerSearch" placeholder="رقم الدرج">
-<button onclick="loadTreasury()">عرض</button>
-</div>
+            <!-- InstaPay Card -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border-r-4 border-indigo-500 stat-card">
+                <div class="flex justify-between items-start">
+                    <p class="text-slate-500 text-sm font-bold">انستا باي</p>
+                    <span class="bg-indigo-50 text-indigo-600 p-2 rounded-lg text-xs">📱 Insta</span>
+                </div>
+                <h2 id="totalInsta" class="text-2xl font-black text-slate-800 mt-2">0</h2>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs font-bold text-slate-400">عدد العمليات:</span>
+                    <span id="countInsta" class="text-indigo-600 font-bold">0</span>
+                </div>
+            </div>
 
-<div id="summaryBox" class="card"></div>
+            <!-- Wallet Card -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border-r-4 border-purple-500 stat-card">
+                <div class="flex justify-between items-start">
+                    <p class="text-slate-500 text-sm font-bold">المحافظ</p>
+                    <span class="bg-purple-50 text-purple-600 p-2 rounded-lg text-xs">💳 Wallets</span>
+                </div>
+                <h2 id="totalWallet" class="text-2xl font-black text-slate-800 mt-2">0</h2>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs font-bold text-slate-400">عدد العمليات:</span>
+                    <span id="countWallet" class="text-purple-600 font-bold">0</span>
+                </div>
+            </div>
 
-<div class="card">
-<table>
-<thead>
-<tr>
-<th>الدرج</th><th>التاريخ</th><th>اليوم</th><th>الفرع</th><th>الإجمالي</th>
-</tr>
-</thead>
-<tbody id="treasuryTable"></tbody>
-</table>
-</div>
+            <!-- Visa Card -->
+            <div class="bg-white p-5 rounded-2xl shadow-sm border-r-4 border-orange-500 stat-card">
+                <div class="flex justify-between items-start">
+                    <p class="text-slate-500 text-sm font-bold">الفيزا</p>
+                    <span class="bg-orange-50 text-orange-600 p-2 rounded-lg text-xs">🏧 Visa</span>
+                </div>
+                <h2 id="totalVisa" class="text-2xl font-black text-slate-800 mt-2">0</h2>
+                <div class="flex items-center gap-2 mt-2">
+                    <span class="text-xs font-bold text-slate-400">عدد العمليات:</span>
+                    <span id="countVisa" class="text-orange-600 font-bold">0</span>
+                </div>
+            </div>
+        </div>
 
-<div id="detailsContainer" class="card" style="display:none;">
-<div id="details"></div>
-<button class="printBtn" onclick="printReceipt()">🖨 طباعة الرسيت</button>
-</div>
+        <!-- Filters Section -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm mb-6 flex flex-wrap gap-4 items-end border border-slate-100">
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">الفرع</label>
+                <select id="branchFilter" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700">
+                    <option value="">جميع الفروع</option>
+                </select>
+            </div>
+            <div class="flex-1 min-w-[200px]">
+                <label class="block text-xs font-bold text-slate-400 mb-2 uppercase tracking-wider">التاريخ</label>
+                <input type="date" id="dateFilter" class="w-full bg-slate-50 border border-slate-200 p-3 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none font-bold text-slate-700">
+            </div>
+            <button onclick="fetchData()" class="bg-slate-900 hover:bg-black text-white px-10 py-3.5 rounded-xl font-bold transition-all shadow-lg">فلترة</button>
+        </div>
 
-</div>
+        <!-- Table Card -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-5 border-b border-slate-50 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-slate-800">تفاصيل إغلاق الفروع</h3>
+                <span id="recordCount" class="bg-slate-200 text-slate-700 text-[10px] font-black px-3 py-1 rounded-full uppercase">0 شفت</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-right">
+                    <thead class="text-slate-400 text-[11px] uppercase font-bold border-b border-slate-100">
+                        <tr>
+                            <th class="p-4">الدرج</th>
+                            <th class="p-4">الفرع</th>
+                            <th class="p-4">نقدية</th>
+                            <th class="p-4 text-indigo-500">انستا (ع)</th>
+                            <th class="p-4 text-purple-500">محفظة (ع)</th>
+                            <th class="p-4 text-orange-500">فيزا (ع)</th>
+                            <th class="p-4">الفعلي</th>
+                            <th class="p-4">الفرق</th>
+                            <th class="p-4 text-center">الإجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportsTable" class="divide-y divide-slate-50 text-sm">
+                        <!-- rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Thermal Area -->
+    <div id="receiptArea" class="receipt-container"></div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
 <script>
-const firebaseConfig={
-databaseURL:"https://sample-firebase-ai-app-e4260-default-rtdb.firebaseio.com/"
-};
-firebase.initializeApp(firebaseConfig);
-const db=firebase.database();
+    const firebaseConfig = { databaseURL: "https://sample-firebase-ai-app-e4260-default-rtdb.firebaseio.com/" };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
-let current=null;
-const sum=(arr)=> (arr||[]).reduce((a,b)=>a+Number(b.amount||0),0);
+    window.onload = () => {
+        loadBranches();
+        fetchData();
+    };
 
-// الفروع
-db.ref("branches").once("value").then(snap=>{
-snap.forEach(b=>{
-branchSelect.innerHTML+=`<option value="${b.key}">${b.val().name}</option>`;
-});
-});
+    function loadBranches() {
+        db.ref("branches").once("value", snap => {
+            const s = document.getElementById("branchFilter");
+            snap.forEach(c => s.innerHTML += `<option value="${c.key}">${c.val().name}</option>`);
+        });
+    }
 
-// فلترة + إجماليات
-function loadTreasury(){
-treasuryTable.innerHTML="";
-summaryBox.innerHTML="";
+    function getStats(arr, type) {
+        if(!arr) return { total: 0, count: 0 };
+        let total = arr.reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
+        let count = 0;
+        if(type === 'visa') {
+            count = arr.reduce((a, b) => a + (parseInt(b.count) || 0), 0);
+        } else {
+            count = arr.length;
+        }
+        return { total, count };
+    }
 
-let selectedDate = dateSelect.value;
-let drawerVal = drawerSearch.value;
+    function fetchData() {
+        const table = document.getElementById("reportsTable");
+        const bKey = document.getElementById("branchFilter").value;
+        const dFilt = document.getElementById("dateFilter").value;
 
-db.ref("treasury").once("value").then(snap=>{
+        table.innerHTML = `<tr><td colspan="9" class="p-10 text-center text-slate-300">جاري تحميل البيانات...</td></tr>`;
 
-let cashTotal=0, instaTotal=0, walletTotal=0, visaTotal=0;
-let instaCount=0, walletCount=0, visaCount=0;
+        db.ref("treasury").once("value", snap => {
+            table.innerHTML = "";
+            let data = [];
+            snap.forEach(c => {
+                const item = c.val();
+                if (bKey && item.branchKey !== bKey) return;
+                if (dFilt && item.date !== dFilt) return;
+                data.push(item);
+            });
 
-snap.forEach(s=>{
-let t=s.val();
+            data.sort((a, b) => b.timestamp - a.timestamp);
+            
+            // تحديث الإحصائيات
+            let cTotal=0, iTotal=0, iCount=0, wTotal=0, wCount=0, vTotal=0, vCount=0, gTotal=0;
+            
+            data.forEach(item => {
+                const iS = getStats(item.insta, 'insta');
+                const wS = getStats(item.wallet, 'wallet');
+                const vS = getStats(item.visa, 'visa');
 
-if(selectedDate && t.date !== selectedDate) return;
-if(drawerVal && t.drawer != drawerVal) return;
+                cTotal += parseFloat(item.cash || 0);
+                iTotal += iS.total; iCount += iS.count;
+                wTotal += wS.total; wCount += wS.count;
+                vTotal += vS.total; vCount += vS.count;
+                gTotal += parseFloat(item.actual || 0);
 
-let tr=document.createElement("tr");
-tr.innerHTML=`<td>${t.drawer}</td><td>${t.date}</td><td>${t.day}</td><td>${t.branchName}</td><td>${t.total}</td>`;
-tr.onclick=()=>{current=t;showDetails(t);}
-treasuryTable.appendChild(tr);
+                const diff = parseFloat(item.diff) || 0;
+                const tr = document.createElement("tr");
+                tr.className = "hover:bg-slate-50 transition-all font-medium text-slate-700";
+                tr.innerHTML = `
+                    <td class="p-4 font-bold">#${item.drawer}</td>
+                    <td class="p-4 text-slate-500">${item.branchName}</td>
+                    <td class="p-4">${item.cash}</td>
+                    <td class="p-4 text-indigo-600">${iS.total} <small class="text-slate-300">(${iS.count})</small></td>
+                    <td class="p-4 text-purple-600">${wS.total} <small class="text-slate-300">(${wS.count})</small></td>
+                    <td class="p-4 text-orange-600">${vS.total} <small class="text-slate-300">(${vS.count})</small></td>
+                    <td class="p-4 text-blue-600 font-bold">${item.actual}</td>
+                    <td class="p-4 font-black ${diff < 0 ? 'text-red-500' : 'text-green-500'}">${item.diff}</td>
+                    <td class="p-4 text-center">
+                        <button onclick='printReceipt(${JSON.stringify(item)})' class="bg-indigo-50 text-indigo-600 px-3 py-1 rounded-md text-xs font-bold hover:bg-indigo-600 hover:text-white">طبعة</button>
+                    </td>
+                `;
+                table.appendChild(tr);
+            });
 
-cashTotal += Number(t.cash||0);
-instaTotal += sum(t.insta);
-instaCount += (t.insta||[]).length;
-walletTotal += sum(t.wallet);
-walletCount += (t.wallet||[]).length;
-visaTotal += sum(t.visa);
-visaCount += (t.visa||[]).length;
-});
+            document.getElementById("totalCash").innerText = cTotal.toLocaleString();
+            document.getElementById("totalInsta").innerText = iTotal.toLocaleString();
+            document.getElementById("countInsta").innerText = iCount;
+            document.getElementById("totalWallet").innerText = wTotal.toLocaleString();
+            document.getElementById("countWallet").innerText = wCount;
+            document.getElementById("totalVisa").innerText = vTotal.toLocaleString();
+            document.getElementById("countVisa").innerText = vCount;
+            document.getElementById("grandTotal").innerText = gTotal.toLocaleString();
+            document.getElementById("recordCount").innerText = data.length + " شفت";
+        });
+    }
 
-summaryBox.innerHTML=`
-<table class="detailsTable">
-<tr>
-<th>نقدي</th>
-<th>انستا</th><th>عدد</th>
-<th>محفظة</th><th>عدد</th>
-<th>فيزا</th><th>عدد</th>
-<th>الإجمالي العام</th>
-</tr>
+    window.printReceipt = function(data) {
+        const area = document.getElementById("receiptArea");
+        const iS = getStats(data.insta, 'insta');
+        const wS = getStats(data.wallet, 'wallet');
+        const vS = getStats(data.visa, 'visa');
 
-<tr>
-<td>${cashTotal}</td>
-<td>${instaTotal}</td><td>${instaCount}</td>
-<td>${walletTotal}</td><td>${walletCount}</td>
-<td>${visaTotal}</td><td>${visaCount}</td>
-<td>${cashTotal + instaTotal + walletTotal}</td>
-</tr>
-</table>
-`;
-});
-}
+        area.innerHTML = `
+            <div class="receipt-header">
+                <h1 style="font-size: 28px; margin:0;">${data.branchName}</h1>
+                <p style="font-size: 14px; margin:2px 0;">إغلاق الخزينة الرسمي</p>
+            </div>
+            
+            <div class="receipt-row"><span>رقم الدرج:</span> <span>#${data.drawer}</span></div>
+            <div class="receipt-row"><span>التاريخ:</span> <span>${data.date}</span></div>
+            <div class="receipt-row"><span>المسؤول:</span> <span>${data.drawerManager}</span></div>
+            
+            <div style="border-top: 2px dashed #000; margin: 10px 0;"></div>
+            
+            <div class="receipt-row"><span>نقدية (Cash):</span> <span>${data.cash}</span></div>
+            
+            <div class="receipt-row"><span>انستا باي:</span> <span>${iS.total}</span></div>
+            <div style="font-size:12px; text-align:left; margin-top:-5px; color:#555;">(عدد العمليات: ${iS.count})</div>
+            
+            <div class="receipt-row"><span>محافظ:</span> <span>${wS.total}</span></div>
+            <div style="font-size:12px; text-align:left; margin-top:-5px; color:#555;">(عدد العمليات: ${wS.count})</div>
+            
+            <div class="receipt-row"><span>فيزا:</span> <span>${vS.total}</span></div>
+            <div style="font-size:12px; text-align:left; margin-top:-5px; color:#555;">(عدد العمليات: ${vS.count})</div>
+            
+            <div class="receipt-bold">
+                <div class="receipt-row"><span>المجموع:</span> <span>${data.total}</span></div>
+                <div class="receipt-row"><span>الفعلي:</span> <span>${data.actual}</span></div>
+                <div class="receipt-row" style="color:${parseFloat(data.diff) < 0 ? 'red' : 'green'};">
+                    <span>الفرق:</span> <span>${data.diff}</span>
+                </div>
+            </div>
 
-// عرض التفاصيل (زي ما كان)
-function showDetails(t){
-detailsContainer.style.display="block";
-
-function tableHtml(title, arr, type){
-if(!arr || arr.length==0) return "";
-let h=`<h4>${title}</h4><table class="detailsTable"><tr>`;
-if(type=="insta"||type=="wallet"){h+=`<th>المبلغ</th><th>الرقم</th><th>الاسم</th>`;}
-if(type=="visa"){h+=`<th>المبلغ</th><th>الترحيلة</th>`;}
-if(type=="exp"){h+=`<th>المبلغ</th><th>السبب</th><th>المسؤول</th>`;}
-h+=`</tr>`;
-arr.forEach(i=>{
-h+=`<tr>`;
-if(type=="insta"||type=="wallet"){h+=`<td>${i.amount}</td><td>${i.mobile||""}</td><td>${i.name||""}</td>`;}
-if(type=="visa"){h+=`<td>${i.amount}</td><td>${i.ref||""}</td>`;}
-if(type=="exp"){h+=`<td>${i.amount}</td><td>${i.note||""}</td><td>${i.user||i.employee||""}</td>`;}
-h+=`</tr>`;});
-h+=`</table><b>الإجمالي: ${sum(arr)}</b><br>`;
-return h;
-}
-
-let diffClass=t.diff<0?"diffNegative":"diffPositive";
-
-let html=`
-<div class="headerBox">
-<div class="branchName">فرع: ${t.branchName}</div>
-</div>
-
-<table class="infoTable">
-<tr><th>اليوم</th><th>التاريخ</th><th>رقم الدرج</th></tr>
-<tr><td>${t.day}</td><td>${t.date}</td><td>${t.drawer}</td></tr>
-</table>
-
-<table class="detailsTable">
-<tr><th>الحركة</th><th>القيمة</th></tr>
-<tr><td>نقدي</td><td>${t.cash||0}</td></tr>
-<tr><td>انستا</td><td>${sum(t.insta)}</td></tr>
-<tr><td>محفظة</td><td>${sum(t.wallet)}</td></tr>
-<tr><td>فيزا</td><td>${sum(t.visa)}</td></tr>
-<tr><td>فعلي</td><td>${t.actual||0}</td></tr>
-<tr><td>الإجمالي</td><td>${t.total||0}</td></tr>
-<tr><td>الفرق</td><td class="${diffClass}">${t.diff||0}</td></tr>
-</table>
-`;
-
-html+=tableHtml("انستا",t.insta,"insta");
-html+=tableHtml("محفظة",t.wallet,"wallet");
-html+=tableHtml("فيزا",t.visa,"visa");
-html+=tableHtml("مشتريات",t.purchases,"exp");
-html+=tableHtml("مصروفات",t.expenses,"exp");
-
-html+=`<div class="footerBox"><div>المسؤول: ${t.drawerManager||""}</div><div>المراجع: ${t.reviewer||""}</div></div>`;
-
-document.getElementById("details").innerHTML=html;
-}
-
-// ✅ الطباعة (التعديل فقط هنا)
-function printReceipt(){
-if(!current) return alert("اختر شفت");
-
-function tablePrint(title, arr, type){
-if(!arr || arr.length==0) return "";
-
-let t=`<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;font-size:18px;margin-top:12px">`;
-t+=`<tr><th colspan="3">${title}</th></tr>`;
-
-if(type=="insta"||type=="wallet"){t+=`<tr><th>المبلغ</th><th>رقم</th><th>اسم</th></tr>`;}
-if(type=="visa"){t+=`<tr><th>المبلغ</th><th>ترحيلة</th></tr>`;}
-if(type=="exp"){t+=`<tr><th>المبلغ</th><th>سبب</th><th>مسؤول</th></tr>`;}
-
-arr.forEach(i=>{
-t+=`<tr>`;
-if(type=="insta"||type=="wallet"){t+=`<td>${i.amount}</td><td>${i.mobile||""}</td><td>${i.name||""}</td>`;}
-if(type=="visa"){t+=`<td>${i.amount}</td><td>${i.ref||""}</td>`;}
-if(type=="exp"){t+=`<td>${i.amount}</td><td>${i.note||""}</td><td>${i.user||i.employee||""}</td>`;}
-t+=`</tr>`;
-});
-
-t+=`<tr><td colspan="3"><b>الإجمالي: ${sum(arr)}</b></td></tr></table>`;
-return t;
-}
-
-let html=`
-<body style="font-family:monospace;width:80mm;padding20px;text-align:center">
-
-<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;font-size:18px;margin-top:12px">
-<tr><th colspan="3">الفرع</th></tr>
-<tr><td colspan="3">${current.branchName}</td></tr>
-</table>
-
-<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;font-size:15px;margin-top:12px">
-<tr><th>اليوم</th><th>التاريخ</th><th>رقم الدرج</th></tr>
-<tr><td>${current.day}</td><td>${current.date}</td><td>${current.drawer}</td></tr>
-</table>
-
-<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;font-size:20px;margin-top:24px">
-<tr><th>الحركة</th><th>القيمة</th></tr>
-<tr><td>نقدي</td><td>${current.cash||0}</td></tr>
-<tr><td>انستا</td><td>${sum(current.insta)}</td></tr>
-<tr><td>محفظة</td><td>${sum(current.wallet)}</td></tr>
-<tr><td>فيزا</td><td>${sum(current.visa)}</td></tr>
-<tr><td>فعلي</td><td>${current.actual||0}</td></tr>
-<tr><td>الإجمالي</td><td>${current.total||0}</td></tr>
-<tr><td>الفرق</td><td>${current.diff||0}</td></tr>
-</table>
-
-${tablePrint("انستا",current.insta,"insta")}
-${tablePrint("محفظة",current.wallet,"wallet")}
-${tablePrint("فيزا",current.visa,"visa")}
-${tablePrint("مشتريات",current.purchases,"exp")}
-${tablePrint("مصروفات",current.expenses,"exp")}
-
-<table style="width:100%;border:1px solid #000;border-collapse:collapse;text-align:center;font-size:15px;margin-top:12px">
-<tr><th>مسؤول الدرج</th><th>المراجع</th></tr>
-<tr><td>${current.drawerManager||""}</td><td>${current.reviewer||""}</td></tr>
-</table>
-
-</body>
-`;
-
-let w=window.open("");
-w.document.write(html);
-w.document.close();
-w.print();
-}
+            <div style="margin-top:20px; text-align:center; font-size:11px; border-top:1px dashed #ccc; padding-top:10px;">
+                تمت المراجعة بواسطة: ${data.reviewer}<br>
+                ${new Date().toLocaleString('ar-EG')}
+            </div>
+        `;
+        window.print();
+    }
 </script>
-
 </body>
 </html>
+
