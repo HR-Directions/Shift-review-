@@ -3,151 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام مراجعة وطباعة الخزينة v3.0</title>
+    <title>نظام إدارة الخزينة v3.2</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f1f5f9; }
+        body { font-family: 'Cairo', sans-serif; background-color: #f8fafc; }
         
-        /* إعدادات الطباعة الحرارية 80mm */
-        #thermalReceipt {
+        /* إعدادات الطباعة الحرارية المخصصة */
+        #thermalArea {
             display: none;
             width: 80mm;
             background: white;
-            padding: 5px;
+            padding: 0;
+            margin: 0;
             color: black;
-            margin: 0 auto;
         }
 
         .receipt-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 5px;
-            border: 1px solid #000;
+            border: 1.5px solid #000;
         }
         .receipt-table th, .receipt-table td {
-            border: 1px solid #000;
-            padding: 4px;
+            border: 1.5px solid #000;
+            padding: 5px;
             text-align: center;
             font-size: 14px;
             font-weight: bold;
         }
-        .receipt-header {
+        .header-branch {
             text-align: center;
-            border-bottom: 2px solid #000;
+            font-size: 26px;
+            font-weight: 900;
             margin-bottom: 10px;
+            border-bottom: 3px solid #000;
             padding-bottom: 5px;
         }
-        .big-text { font-size: 20px; font-weight: 900; }
-        .total-row { background-color: #eee !important; }
+        .big-val { font-size: 20px; font-weight: 900; }
+        
+        .footer-signatures {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 25px;
+            border-top: 1.5px solid #000;
+            padding-top: 10px;
+            font-weight: bold;
+            font-size: 13px;
+        }
 
         @media print {
+            @page { size: 80mm auto; margin: 0; }
             body * { visibility: hidden; }
-            #thermalReceipt, #thermalReceipt * { visibility: visible; }
-            #thermalReceipt {
+            #thermalArea, #thermalArea * { visibility: visible; }
+            #thermalArea {
                 display: block !important;
                 position: absolute;
                 left: 0;
                 top: 0;
                 width: 80mm;
-                border: none;
+                padding: 4mm; /* مساحة جانبية للطباعة */
             }
-            @page { size: 80mm auto; margin: 0; }
+            .no-print { display: none !important; }
         }
 
-        .stat-card { transition: all 0.3s ease; }
-        .stat-card:hover { transform: translateY(-5px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .card-stat { @apply bg-white p-5 rounded-2xl shadow-sm border-r-4 transition-all hover:shadow-md; }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-4 md:p-6">
 
     <div class="max-w-7xl mx-auto no-print">
-        <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div>
-                <h1 class="text-3xl font-black text-slate-800">إدارة تقارير الخزينة</h1>
-                <p class="text-slate-500 font-bold">المراجعة والطباعة الحرارية الاحترافية</p>
+                <h1 class="text-3xl font-black text-slate-800">داشبورد مراجعة الفروع</h1>
+                <p class="text-slate-500 font-bold">تتبع المبيعات والطباعة الحرارية 80mm</p>
             </div>
-            <button onclick="fetchData()" class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-black shadow-lg shadow-blue-200">
+            <button onclick="fetchData()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-black shadow-lg transition-all">
                 🔄 تحديث البيانات
             </button>
         </div>
 
-        <!-- Dashboard Stats -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-b-8 border-blue-500 stat-card">
-                <p class="text-slate-400 text-sm font-bold uppercase">إجمالي الكاش</p>
-                <h2 id="dashCash" class="text-3xl font-black text-slate-800 mt-1">0</h2>
+        <!-- الإحصائيات -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="card-stat border-blue-500">
+                <span class="text-slate-400 text-xs font-black uppercase">إجمالي الكاش</span>
+                <h2 id="stCash" class="text-2xl font-black text-slate-800 mt-1">0</h2>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-b-8 border-indigo-500 stat-card">
-                <p class="text-slate-400 text-sm font-bold uppercase">انستا باي (عمليات)</p>
-                <div class="flex justify-between items-end">
-                    <h2 id="dashInsta" class="text-3xl font-black text-slate-800 mt-1">0</h2>
-                    <span id="countInsta" class="text-indigo-600 font-black text-xl">0</span>
+            <div class="card-stat border-emerald-500">
+                <span class="text-slate-400 text-xs font-black uppercase">انستا باي</span>
+                <div class="flex justify-between items-center mt-1">
+                    <h2 id="stInsta" class="text-2xl font-black text-slate-800">0</h2>
+                    <span id="ctInsta" class="text-emerald-600 text-sm font-black">0 op</span>
                 </div>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-b-8 border-purple-500 stat-card">
-                <p class="text-slate-400 text-sm font-bold uppercase">المحافظ (عمليات)</p>
-                <div class="flex justify-between items-end">
-                    <h2 id="dashWallet" class="text-3xl font-black text-slate-800 mt-1">0</h2>
-                    <span id="countWallet" class="text-purple-600 font-black text-xl">0</span>
+            <div class="card-stat border-purple-500">
+                <span class="text-slate-400 text-xs font-black uppercase">المحافظ</span>
+                <div class="flex justify-between items-center mt-1">
+                    <h2 id="stWallet" class="text-2xl font-black text-slate-800">0</h2>
+                    <span id="ctWallet" class="text-purple-600 text-sm font-black">0 op</span>
                 </div>
             </div>
-            <div class="bg-white p-6 rounded-3xl shadow-sm border-b-8 border-orange-500 stat-card">
-                <p class="text-slate-400 text-sm font-bold uppercase">الفيزا (عمليات)</p>
-                <div class="flex justify-between items-end">
-                    <h2 id="dashVisa" class="text-3xl font-black text-slate-800 mt-1">0</h2>
-                    <span id="countVisa" class="text-orange-600 font-black text-xl">0</span>
+            <div class="card-stat border-orange-500">
+                <span class="text-slate-400 text-xs font-black uppercase">الفيزا</span>
+                <div class="flex justify-between items-center mt-1">
+                    <h2 id="stVisa" class="text-2xl font-black text-slate-800">0</h2>
+                    <span id="ctVisa" class="text-orange-600 text-sm font-black">0 op</span>
                 </div>
             </div>
         </div>
 
-        <!-- Filter Bar -->
-        <div class="bg-white p-6 rounded-3xl shadow-sm mb-8 flex flex-wrap gap-4 items-end border border-slate-100">
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-black text-slate-600 mb-2">تصفية بالفرع</label>
-                <select id="branchFilter" class="w-full bg-slate-50 border-2 border-slate-100 p-3 rounded-2xl outline-none focus:border-blue-500 font-bold">
+        <!-- شريط البحث المطول -->
+        <div class="bg-white p-5 rounded-2xl shadow-sm mb-8 border border-slate-100 flex flex-wrap gap-3 items-end">
+            <div class="flex-1 min-w-[150px]">
+                <label class="block text-xs font-black text-slate-500 mb-1">الفرع</label>
+                <select id="fBranch" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl outline-none font-bold focus:border-blue-500">
                     <option value="">جميع الفروع</option>
                 </select>
             </div>
-            <div class="flex-1 min-w-[200px]">
-                <label class="block text-sm font-black text-slate-600 mb-2">تاريخ محدد</label>
-                <input type="date" id="dateFilter" class="w-full bg-slate-50 border-2 border-slate-100 p-3 rounded-2xl outline-none focus:border-blue-500 font-bold">
+            <div class="flex-1 min-w-[150px]">
+                <label class="block text-xs font-black text-slate-500 mb-1">التاريخ</label>
+                <input type="date" id="fDate" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl outline-none font-bold focus:border-blue-500">
             </div>
-            <button onclick="fetchData()" class="bg-slate-800 hover:bg-black text-white px-10 py-4 rounded-2xl font-black transition-all shadow-xl">تطبيق الفلتر</button>
+            <div class="flex-1 min-w-[120px]">
+                <label class="block text-xs font-black text-slate-500 mb-1">رقم الدرج</label>
+                <input type="number" id="fDrawer" placeholder="رقم الدرج" class="w-full bg-slate-50 border border-slate-200 p-2.5 rounded-xl outline-none font-bold focus:border-blue-500">
+            </div>
+            <button onclick="fetchData()" class="bg-slate-800 text-white px-8 py-3 rounded-xl font-black hover:bg-black transition-all">تصفية</button>
+            <button onclick="clearFilters()" class="bg-slate-100 text-slate-600 px-4 py-3 rounded-xl font-bold hover:bg-slate-200 transition-all text-sm">مسح</button>
         </div>
 
-        <!-- Table -->
-        <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100">
-            <div class="p-6 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
-                <h3 class="font-black text-slate-800 text-lg">سجل إغلاق الخزينة اليومي</h3>
-                <span id="shiftCount" class="bg-blue-600 text-white text-xs font-black px-4 py-1.5 rounded-full">0 شفت</span>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-right">
-                    <thead class="bg-slate-50 text-slate-400 text-xs font-black uppercase">
-                        <tr>
-                            <th class="p-5">الدرج</th>
-                            <th class="p-5">الفرع</th>
-                            <th class="p-5">التاريخ</th>
-                            <th class="p-5">إجمالي الحساب</th>
-                            <th class="p-5 text-blue-600">الفعلي</th>
-                            <th class="p-5">العجز/الزيادة</th>
-                            <th class="p-5 text-center">الإجراء</th>
-                        </tr>
-                    </thead>
-                    <tbody id="mainTableBody" class="divide-y divide-slate-50">
-                        <!-- rows -->
-                    </tbody>
-                </table>
-            </div>
+        <!-- جدول النتائج -->
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden border border-slate-100">
+            <table class="w-full text-right">
+                <thead class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
+                    <tr>
+                        <th class="p-4">الدرج</th>
+                        <th class="p-4">الفرع</th>
+                        <th class="p-4">التاريخ</th>
+                        <th class="p-4">الفعلي</th>
+                        <th class="p-4">الفرق</th>
+                        <th class="p-4 text-center">الإجراء</th>
+                    </tr>
+                </thead>
+                <tbody id="mainList" class="divide-y divide-slate-50 font-bold text-slate-700"></tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Thermal Receipt Content -->
-    <div id="thermalReceipt">
-        <!-- سيتم ملؤه بواسطة الجافاسكريبت -->
-    </div>
+    <!-- منطقة الطباعة -->
+    <div id="thermalArea"></div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
@@ -156,155 +160,135 @@
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    window.onload = () => {
-        loadBranches();
-        fetchData();
-    };
+    window.onload = () => { loadBranches(); fetchData(); };
 
     function loadBranches() {
-        db.ref("branches").once("value", snap => {
-            const select = document.getElementById("branchFilter");
-            snap.forEach(c => select.innerHTML += `<option value="${c.key}">${c.val().name}</option>`);
+        db.ref("branches").once("value", s => {
+            const sel = document.getElementById("fBranch");
+            s.forEach(c => sel.innerHTML += `<option value="${c.key}">${c.val().name}</option>`);
         });
     }
 
-    function sum(arr) {
-        if(!arr) return 0;
-        return arr.reduce((a, b) => a + (parseFloat(b.amount) || 0), 0);
+    function clearFilters() {
+        document.getElementById("fBranch").value = "";
+        document.getElementById("fDate").value = "";
+        document.getElementById("fDrawer").value = "";
+        fetchData();
     }
 
-    function countOps(arr, type) {
-        if(!arr) return 0;
-        if(type === 'visa') return arr.reduce((a, b) => a + (parseInt(b.count) || 0), 0);
-        return arr.length;
+    function sum(a) { return a ? a.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0) : 0; }
+    function countOps(a, t) { 
+        if(!a) return 0;
+        return t === 'v' ? a.reduce((s, x) => s + (parseInt(x.count) || 0), 0) : a.length;
     }
 
     function fetchData() {
-        const table = document.getElementById("mainTableBody");
-        const bFilter = document.getElementById("branchFilter").value;
-        const dFilter = document.getElementById("dateFilter").value;
+        const list = document.getElementById("mainList");
+        const b = document.getElementById("fBranch").value;
+        const d = document.getElementById("fDate").value;
+        const dr = document.getElementById("fDrawer").value;
 
-        table.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-300 font-bold">جاري المزامنة...</td></tr>`;
+        list.innerHTML = `<tr><td colspan="6" class="p-10 text-center text-slate-300">جاري التحميل...</td></tr>`;
 
-        db.ref("treasury").once("value", snap => {
-            table.innerHTML = "";
-            let items = [];
-            snap.forEach(c => {
-                const val = c.val();
-                if (bFilter && val.branchKey !== bFilter) return;
-                if (dFilter && val.date !== dFilter) return;
-                items.push(val);
+        db.ref("treasury").once("value", s => {
+            list.innerHTML = "";
+            let records = [];
+            s.forEach(c => {
+                const item = c.val();
+                if (b && item.branchKey !== b) return;
+                if (d && item.date !== d) return;
+                if (dr && item.drawer != dr) return;
+                records.push(item);
             });
 
-            items.sort((a, b) => b.timestamp - a.timestamp);
+            records.sort((x, y) => y.timestamp - x.timestamp);
 
-            // تحديث الأرقام العلوية
-            let tCash=0, tInsta=0, cInsta=0, tWall=0, cWall=0, tVisa=0, cVisa=0;
-            
-            items.forEach(item => {
-                const iSum = sum(item.insta); const iCnt = countOps(item.insta);
-                const wSum = sum(item.wallet); const wCnt = countOps(item.wallet);
-                const vSum = sum(item.visa); const vCnt = countOps(item.visa, 'visa');
+            let tC=0, tI=0, cI=0, tW=0, cW=0, tV=0, cV=0;
+            records.forEach(item => {
+                const iS=sum(item.insta), iC=countOps(item.insta), wS=sum(item.wallet), wC=countOps(item.wallet), vS=sum(item.visa), vC=countOps(item.visa,'v');
+                tC += (+item.cash||0); tI += iS; cI += iC; tW += wS; cW += wC; tV += vS; cV += vC;
 
-                tCash += (parseFloat(item.cash) || 0);
-                tInsta += iSum; cInsta += iCnt;
-                tWall += wSum; cWall += wCnt;
-                tVisa += vSum; cVisa += vCnt;
-
-                const diff = parseFloat(item.diff) || 0;
                 const tr = document.createElement("tr");
-                tr.className = "hover:bg-blue-50/50 transition-colors font-bold text-slate-700";
+                tr.className = "hover:bg-slate-50 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-5">#${item.drawer}</td>
-                    <td class="p-5 text-slate-500">${item.branchName}</td>
-                    <td class="p-5 text-slate-400 text-xs">${item.date}</td>
-                    <td class="p-5">${item.total}</td>
-                    <td class="p-5 text-blue-600">${item.actual}</td>
-                    <td class="p-5 ${diff < 0 ? 'text-red-500' : 'text-green-600'}">${item.diff}</td>
-                    <td class="p-5 text-center">
-                        <button onclick='printNow(${JSON.stringify(item)})' class="bg-slate-100 hover:bg-slate-800 hover:text-white px-5 py-2 rounded-xl text-xs font-black transition-all">🖨️ طباعة ريسيت</button>
+                    <td class="p-4">#${item.drawer}</td>
+                    <td class="p-4 text-slate-500">${item.branchName}</td>
+                    <td class="p-4 text-xs text-slate-400">${item.date}</td>
+                    <td class="p-4 text-blue-600">${item.actual}</td>
+                    <td class="p-4 ${+item.diff < 0 ? 'text-red-500' : 'text-green-500'}">${item.diff}</td>
+                    <td class="p-4 text-center">
+                        <button onclick='printReport(${JSON.stringify(item)})' class="bg-slate-800 text-white px-4 py-1.5 rounded-lg text-xs font-black">طباعة</button>
                     </td>
                 `;
-                table.appendChild(tr);
+                list.appendChild(tr);
             });
 
-            document.getElementById("dashCash").innerText = tCash.toLocaleString();
-            document.getElementById("dashInsta").innerText = tInsta.toLocaleString();
-            document.getElementById("countInsta").innerText = cInsta;
-            document.getElementById("dashWallet").innerText = tWall.toLocaleString();
-            document.getElementById("countWallet").innerText = cWall;
-            document.getElementById("dashVisa").innerText = tVisa.toLocaleString();
-            document.getElementById("countVisa").innerText = cVisa;
-            document.getElementById("shiftCount").innerText = items.length + " شفت";
+            document.getElementById("stCash").innerText = tC.toLocaleString();
+            document.getElementById("stInsta").innerText = tI.toLocaleString();
+            document.getElementById("ctInsta").innerText = cI + " op";
+            document.getElementById("stWallet").innerText = tW.toLocaleString();
+            document.getElementById("ctWallet").innerText = wC + " op";
+            document.getElementById("stVisa").innerText = tV.toLocaleString();
+            document.getElementById("ctVisa").innerText = vC + " op";
         });
     }
 
-    function generateTableHTML(title, data, type) {
-        if(!data || data.length === 0) return "";
-        let html = `<div style="text-align:center; font-weight:bold; margin-top:15px; border-top:1px dashed #000; padding-top:5px;">-- ${title} --</div>`;
-        html += `<table class="receipt-table"><thead><tr>`;
-        
-        if(type === 'visa') html += `<th>باتش</th><th>قيمة</th><th>عدد</th>`;
-        else if(type === 'transfer') html += `<th>قيمة</th><th>رقم</th><th>اسم</th>`;
-        else html += `<th>قيمة</th><th>البيان</th><th>مسؤول</th>`;
-        
-        html += `</tr></thead><tbody>`;
-        
-        data.forEach(d => {
-            html += `<tr>`;
-            if(type === 'visa') html += `<td>${d.batch}</td><td>${d.amount}</td><td>${d.count}</td>`;
-            else if(type === 'transfer') html += `<td>${d.amount}</td><td>${d.mobile}</td><td>${d.name}</td>`;
-            else html += `<td>${d.amount}</td><td>${d.note}</td><td>${d.user}</td>`;
-            html += `</tr>`;
+    function subTable(title, arr, mode) {
+        if(!arr || arr.length === 0) return "";
+        let h = `<div style="text-align:center; font-weight:900; margin-top:12px; border-top:1.2px dashed #000; padding-top:4px;">-- ${title} --</div>`;
+        h += `<table class="receipt-table"><thead><tr>`;
+        if(mode==='v') h += `<th>باتش</th><th>قيمة</th><th>ع</th>`;
+        else if(mode==='t') h += `<th>قيمة</th><th>رقم</th><th>اسم</th>`;
+        else h += `<th>قيمة</th><th>بيان</th><th>مسؤول</th>`;
+        h += `</tr></thead><tbody>`;
+        arr.forEach(x => {
+            h += `<tr>`;
+            if(mode==='v') h += `<td>${x.batch}</td><td>${x.amount}</td><td>${x.count}</td>`;
+            else if(mode==='t') h += `<td>${x.amount}</td><td>${x.mobile}</td><td>${x.name}</td>`;
+            else h += `<td>${x.amount}</td><td>${x.note}</td><td>${x.user}</td>`;
+            h += `</tr>`;
         });
-        
-        html += `<tr class="total-row"><td colspan="${type === 'transfer' || type === 'visa' || type === 'exp' ? '2' : '1'}">إجمالي ${title}</td><td>${sum(data)}</td></tr>`;
-        html += `</tbody></table>`;
-        return html;
+        h += `<tr style="background:#eee"><td colspan="${mode==='v'||mode==='t'?'2':'1'}">إجمالي ${title}</td><td>${sum(arr)}</td></tr></tbody></table>`;
+        return h;
     }
 
-    window.printNow = function(data) {
-        const receipt = document.getElementById("thermalReceipt");
-        
-        let content = `
-            <div class="receipt-header">
-                <div class="big-text">${data.branchName}</div>
-                <div style="font-weight:bold;">تقرير إغلاق الخزينة اليومي</div>
-            </div>
+    window.printReport = function(d) {
+        const area = document.getElementById("thermalArea");
+        area.innerHTML = `
+            <div class="header-branch">فرع: ${d.branchName}</div>
             
-            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:5px;">
-                <span>التاريخ: ${data.date}</span>
-                <span>اليوم: ${data.day}</span>
+            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:14px; margin-bottom:5px;">
+                <span>التاريخ: ${d.date}</span>
+                <span>اليوم: ${d.day}</span>
             </div>
-            <div style="display:flex; justify-content:space-between; font-weight:bold; margin-bottom:10px;">
-                <span>الدرج: #${data.drawer}</span>
-                <span>المسؤول: ${data.drawerManager}</span>
-            </div>
+            <div style="font-weight:bold; font-size:14px; margin-bottom:10px;">رقم الدرج: #${d.drawer}</div>
 
-            <table class="receipt-table" style="font-size:18px;">
-                <tr style="background:#eee"><th>البند</th><th>القيمة</th></tr>
-                <tr><td>نقدي (كاش)</td><td>${data.cash}</td></tr>
-                <tr><td>انستا باي</td><td>${sum(data.insta)}</td></tr>
-                <tr><td>المحافظ</td><td>${sum(data.wallet)}</td></tr>
-                <tr><td>الفيزا</td><td>${sum(data.visa)}</td></tr>
-                <tr class="big-text"><td>الفعلي</td><td>${data.actual}</td></tr>
-                <tr class="big-text"><td>الإجمالي</td><td>${data.total}</td></tr>
-                <tr class="big-text" style="color:${parseFloat(data.diff) < 0 ? 'red' : 'green'}"><td>الفرق</td><td>${data.diff}</td></tr>
+            <table class="receipt-table" style="font-size:17px;">
+                <tr style="background:#eee"><th>البيان</th><th>القيمة</th></tr>
+                <tr><td>نقدي (كاش)</td><td>${d.cash}</td></tr>
+                <tr><td>انستا باي</td><td>${sum(d.insta)}</td></tr>
+                <tr><td>محافظ إلكترونية</td><td>${sum(d.wallet)}</td></tr>
+                <tr><td>فيزا مبيعات</td><td>${sum(d.visa)}</td></tr>
+                <tr class="big-val" style="background:#f0f0f0"><td>المبلغ الفعلي</td><td>${d.actual}</td></tr>
+                <tr class="big-val"><td>إجمالي الحساب</td><td>${d.total}</td></tr>
+                <tr class="big-val" style="color:${+d.diff < 0 ? 'red' : 'green'}"><td>الفرق</td><td>${d.diff}</td></tr>
             </table>
 
-            ${generateTableHTML("تفاصيل الفيزا", data.visa, "visa")}
-            ${generateTableHTML("تفاصيل انستا", data.insta, "transfer")}
-            ${generateTableHTML("تفاصيل المحافظ", data.wallet, "transfer")}
-            ${generateTableHTML("المشتريات", data.purchases, "exp")}
-            ${generateTableHTML("المصروفات", data.expenses, "exp")}
+            ${subTable("الفيزا والباتشات", d.visa, 'v')}
+            ${subTable("انستا باي", d.insta, 't')}
+            ${subTable("المحافظ الذكية", d.wallet, 't')}
+            ${subTable("المشتريات", d.purchases, 'e')}
+            ${subTable("المصروفات", d.expenses, 'e')}
 
-            <div style="margin-top:20px; text-align:center; border-top:2px solid #000; padding-top:10px;">
-                <div style="font-weight:bold;">المراجع: ${data.reviewer}</div>
-                <div style="font-size:12px;">تاريخ الطباعة: ${new Date().toLocaleString('ar-EG')}</div>
+            <div class="footer-signatures">
+                <div>توقيع المسؤول: ${d.drawerManager}</div>
+                <div>توقيع المراجع: ${d.reviewer}</div>
+            </div>
+
+            <div style="text-align:center; font-size:10px; margin-top:20px; border-top:1px solid #ddd; padding-top:5px;">
+                تمت الطباعة في: ${new Date().toLocaleString('ar-EG')}
             </div>
         `;
-
-        receipt.innerHTML = content;
         window.print();
     }
 </script>
