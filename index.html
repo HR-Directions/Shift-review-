@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام إدارة الخزينة v4.0</title>
+    <title>نظام إدارة الخزينة v5.1 - الاحترافي المتكامل</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
@@ -40,20 +40,11 @@
         }
         .header-branch {
             text-align: center;
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 900;
             border-bottom: 2px solid #000;
             margin-bottom: 10px;
             padding-bottom: 5px;
-        }
-        .footer-sigs {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 20px;
-            border-top: 1.5px solid #000;
-            padding-top: 10px;
-            font-weight: bold;
-            font-size: 12px;
         }
 
         @media print {
@@ -70,78 +61,79 @@
             }
         }
 
-        .selected-row { background-color: #e0f2fe !important; }
-        .detail-card { animation: slideDown 0.3s ease-out; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .checkbox-custom { width: 22px; height: 22px; cursor: pointer; accent-color: #2563eb; }
+        .floating-actions { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 50; }
+        .selected-row { background-color: #eff6ff !important; border-right: 4px solid #2563eb; }
     </style>
 </head>
-<body class="p-4 md:p-6">
+<body class="p-4 md:p-6 pb-32">
 
     <div class="max-w-7xl mx-auto no-print">
         <header class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
             <div>
                 <h1 class="text-3xl font-black text-slate-800">مراجعة الخزينة المركزية</h1>
-                <p class="text-slate-500 font-bold">لوحة تحكم الإصدار v4.0</p>
+                <p class="text-slate-500 font-bold text-xs uppercase tracking-widest">إصدار التقارير المجمعة v5.1</p>
             </div>
-            <button onclick="fetchData()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-black shadow-lg">
-                🔄 تحديث المزامنة
+            <button onclick="fetchData()" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-2xl font-black shadow-lg transition-all">
+                🔄 تحديث البيانات
             </button>
         </header>
 
-        <!-- الإحصائيات -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8 text-right">
+        <!-- الإحصائيات الشاملة -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             <div class="bg-white p-5 rounded-3xl shadow-sm border-r-8 border-blue-600">
-                <span class="text-slate-400 text-xs font-black uppercase tracking-tighter">إجمالي النقدي (الكاش)</span>
-                <h2 id="totalCashView" class="text-2xl font-black text-slate-800 mt-1">0</h2>
+                <span class="text-slate-400 text-xs font-black uppercase">إجمالي النقدي (كاش)</span>
+                <h2 id="stCash" class="text-2xl font-black text-slate-800 mt-1">0</h2>
             </div>
             <div class="bg-white p-5 rounded-3xl shadow-sm border-r-8 border-emerald-500">
-                <span class="text-slate-400 text-xs font-black uppercase tracking-tighter">انستا باي (عمليات)</span>
-                <div class="flex justify-between items-center">
-                    <h2 id="totalInstaView" class="text-2xl font-black text-slate-800">0</h2>
-                    <span id="countInstaView" class="text-emerald-600 font-black">0</span>
+                <span class="text-slate-400 text-xs font-black uppercase">انستا باي (عمليات)</span>
+                <div class="flex justify-between items-center mt-1">
+                    <h2 id="stInsta" class="text-2xl font-black text-slate-800">0</h2>
+                    <span id="stInstaCount" class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs">0</span>
                 </div>
             </div>
             <div class="bg-white p-5 rounded-3xl shadow-sm border-r-8 border-orange-500">
-                <span class="text-slate-400 text-xs font-black uppercase tracking-tighter">الفيزا (عمليات)</span>
-                <div class="flex justify-between items-center">
-                    <h2 id="totalVisaView" class="text-2xl font-black text-slate-800">0</h2>
-                    <span id="countVisaView" class="text-orange-600 font-black">0</span>
+                <span class="text-slate-400 text-xs font-black uppercase">الفيزا (عمليات)</span>
+                <div class="flex justify-between items-center mt-1">
+                    <h2 id="stVisa" class="text-2xl font-black text-slate-800">0</h2>
+                    <span id="stVisaCount" class="bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs">0</span>
                 </div>
             </div>
             <div class="bg-white p-5 rounded-3xl shadow-sm border-r-8 border-purple-500">
-                <span class="text-slate-400 text-xs font-black uppercase tracking-tighter">المحافظ (عمليات)</span>
-                <div class="flex justify-between items-center">
-                    <h2 id="totalWalletView" class="text-2xl font-black text-slate-800">0</h2>
-                    <span id="countWalletView" class="text-purple-600 font-black">0</span>
+                <span class="text-slate-400 text-xs font-black uppercase">المحافظ (عمليات)</span>
+                <div class="flex justify-between items-center mt-1">
+                    <h2 id="stWallet" class="text-2xl font-black text-slate-800">0</h2>
+                    <span id="stWalletCount" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs">0</span>
                 </div>
             </div>
         </div>
 
-        <!-- فلاتر البحث -->
+        <!-- فلاتر البحث المتقدمة -->
         <div class="bg-white p-6 rounded-3xl shadow-sm mb-6 flex flex-wrap gap-4 items-end border border-slate-100">
             <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-black text-slate-500 mb-1">تصفية بالفرع</label>
-                <select id="branchFilter" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold focus:border-blue-500 transition-all">
+                <select id="fBranch" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold focus:border-blue-500">
                     <option value="">جميع الفروع</option>
                 </select>
             </div>
             <div class="flex-1 min-w-[150px]">
                 <label class="block text-xs font-black text-slate-500 mb-1">تاريخ اليوم</label>
-                <input type="date" id="dateFilter" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold focus:border-blue-500 transition-all">
+                <input type="date" id="fDate" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold focus:border-blue-500">
             </div>
             <div class="flex-1 min-w-[100px]">
                 <label class="block text-xs font-black text-slate-500 mb-1">رقم الدرج</label>
-                <input type="number" id="drawerFilter" placeholder="مثال: 5" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold focus:border-blue-500 transition-all">
+                <input type="number" id="fDrawer" placeholder="رقم" class="w-full bg-slate-50 border-2 border-slate-100 p-2.5 rounded-2xl outline-none font-bold focus:border-blue-500">
             </div>
             <button onclick="fetchData()" class="bg-slate-900 text-white px-10 py-3.5 rounded-2xl font-black hover:bg-black transition-all shadow-xl">بحث وتصفية</button>
         </div>
 
         <!-- الجدول الرئيسي -->
-        <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100 mb-8">
+        <div class="bg-white rounded-3xl shadow-sm overflow-hidden border border-slate-100 mb-6">
             <div class="overflow-x-auto">
                 <table class="w-full text-right">
                     <thead class="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b border-slate-100">
                         <tr>
+                            <th class="p-5 text-center"><input type="checkbox" id="selectAll" onclick="toggleSelectAll(this)" class="checkbox-custom"></th>
                             <th class="p-5">رقم الدرج</th>
                             <th class="p-5">اسم الفرع</th>
                             <th class="p-5">التاريخ</th>
@@ -151,26 +143,35 @@
                             <th class="p-5 text-center">إجراء</th>
                         </tr>
                     </thead>
-                    <tbody id="reportsTable" class="divide-y divide-slate-50 font-bold text-slate-700">
-                        <!-- rows populate here -->
+                    <tbody id="mainTableBody" class="divide-y divide-slate-50 font-bold text-slate-700">
+                        <!-- rows -->
                     </tbody>
                 </table>
             </div>
         </div>
 
         <!-- قسم عرض التفاصيل عند النقر -->
-        <div id="detailsPanel" class="hidden detail-card bg-white p-8 rounded-3xl shadow-xl border-2 border-blue-100 mb-10">
+        <div id="detailsPanel" class="hidden bg-white p-8 rounded-3xl shadow-xl border-2 border-blue-100 mb-10 transition-all">
             <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-black text-blue-900">تفاصيل السجل المحدد</h3>
-                <button onclick="closeDetails()" class="text-slate-400 hover:text-red-500 font-bold">إغلاق التقرير ✖</button>
+                <h3 class="text-xl font-black text-blue-900">تفاصيل السجل المالي</h3>
+                <button onclick="closeDetails()" class="text-slate-400 hover:text-red-500 font-bold text-xl">✖</button>
             </div>
             <div id="detailsContent" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- sub-tables will populate here -->
+                <!-- sub-tables -->
             </div>
         </div>
     </div>
 
-    <!-- منطقة الطباعة 80mm -->
+    <!-- أزرار العمليات المجمعة -->
+    <div id="bulkActions" class="hidden floating-actions bg-slate-900 text-white p-4 rounded-3xl shadow-2xl flex items-center gap-6 border border-slate-700">
+        <span id="selectedCount" class="text-sm font-black text-blue-400 px-4">تم تحديد 0 ورديات</span>
+        <div class="flex gap-2">
+            <button onclick="generateDailyReport('print')" class="bg-blue-600 px-6 py-2 rounded-xl text-xs font-black hover:bg-blue-500">🖨️ طباعة تقرير مجمع</button>
+            <button onclick="generateDailyReport('whatsapp')" class="bg-emerald-600 px-6 py-2 rounded-xl text-xs font-black hover:bg-emerald-500">📱 إرسال واتساب</button>
+        </div>
+    </div>
+
+    <!-- منطقة الطباعة المخفية -->
     <div id="thermalArea"></div>
 
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
@@ -179,14 +180,15 @@
     const firebaseConfig = { databaseURL: "https://sample-firebase-ai-app-e4260-default-rtdb.firebaseio.com/" };
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-
     const logoUrl = "https://lh3.googleusercontent.com/pw/AP1GczOHV-3gVfsqN_Y3nGe3v3khgZh8jnMiyzrIg6KECReqrTpnHFK4Adt-_QMyqjcqzy4a2XuXO-sHdgygcqRXcBg0jRmhi4K82oIia841B8vVLescBEqAtn2sZrGf5UO8AqKouvByzQKvoXET4XtjA7-t=w2499-h2499-s-no-gm?authuser=0";
+
+    let fetchedRecords = [];
 
     window.onload = () => { loadBranches(); fetchData(); };
 
     function loadBranches() {
         db.ref("branches").once("value", s => {
-            const sel = document.getElementById("branchFilter");
+            const sel = document.getElementById("fBranch");
             s.forEach(c => sel.innerHTML += `<option value="${c.key}">${c.val().name}</option>`);
         });
     }
@@ -196,81 +198,81 @@
         return arr.reduce((acc, curr) => acc + (parseFloat(curr.amount) || 0), 0);
     }
 
-    function count(arr, isVisa = false) {
+    function countOperations(arr, isVisa = false) {
         if(!arr || !Array.isArray(arr)) return 0;
         if(isVisa) return arr.reduce((acc, curr) => acc + (parseInt(curr.count) || 0), 0);
         return arr.length;
     }
 
     function fetchData() {
-        const table = document.getElementById("reportsTable");
-        const bF = document.getElementById("branchFilter").value;
-        const dF = document.getElementById("dateFilter").value;
-        const rF = document.getElementById("drawerFilter").value;
+        const body = document.getElementById("mainTableBody");
+        const bF = document.getElementById("fBranch").value;
+        const dF = document.getElementById("fDate").value;
+        const rF = document.getElementById("fDrawer").value;
 
-        table.innerHTML = `<tr><td colspan="7" class="p-10 text-center text-slate-300 font-bold animate-pulse">جاري جلب السجلات المحدثة...</td></tr>`;
+        body.innerHTML = `<tr><td colspan="8" class="p-10 text-center text-slate-300 font-bold">جاري تحديث البيانات...</td></tr>`;
 
         db.ref("treasury").once("value", s => {
-            table.innerHTML = "";
-            let records = [];
+            body.innerHTML = "";
+            fetchedRecords = [];
             s.forEach(c => {
                 const item = c.val();
+                item.key = c.key;
                 if (bF && item.branchKey !== bF) return;
                 if (dF && item.date !== dF) return;
                 if (rF && item.drawer != rF) return;
-                records.push(item);
+                fetchedRecords.push(item);
             });
 
-            records.sort((x, y) => y.timestamp - x.timestamp);
+            fetchedRecords.sort((x, y) => y.timestamp - x.timestamp);
 
-            let gCash=0, gInsta=0, cInsta=0, gWall=0, cWall=0, gVisa=0, cVisa=0;
+            let tCash=0, tInsta=0, cInsta=0, tWallet=0, cWallet=0, tVisa=0, cVisa=0;
 
-            records.forEach(item => {
-                const iSum = sum(item.insta); const iCnt = count(item.insta);
-                const wSum = sum(item.wallet); const wCnt = count(item.wallet);
-                const vSum = sum(item.visa); const vCnt = count(item.visa, true);
+            fetchedRecords.forEach(item => {
+                const iSum = sum(item.insta); const iCnt = countOperations(item.insta);
+                const wSum = sum(item.wallet); const wCnt = countOperations(item.wallet);
+                const vSum = sum(item.visa); const vCnt = countOperations(item.visa, true);
 
-                gCash += (parseFloat(item.cash) || 0);
-                gInsta += iSum; cInsta += iCnt;
-                gWall += wSum; cWall += wCnt;
-                gVisa += vSum; cVisa += vCnt;
+                tCash += (+item.cash||0);
+                tInsta += iSum; cInsta += iCnt;
+                tWallet += wSum; cWallet += wCnt;
+                tVisa += vSum; cVisa += vCnt;
 
                 const tr = document.createElement("tr");
                 tr.className = "hover:bg-blue-50 transition-all cursor-pointer group";
                 tr.onclick = (e) => {
-                    if(e.target.tagName !== 'BUTTON') showDetails(item, tr);
+                    if(!e.target.classList.contains('row-check') && e.target.tagName !== 'BUTTON') showDetails(item, tr);
                 };
                 tr.innerHTML = `
+                    <td class="p-5 text-center"><input type="checkbox" value="${item.key}" onchange="updateSelectedCount()" class="row-check checkbox-custom"></td>
                     <td class="p-5">#${item.drawer}</td>
                     <td class="p-5 text-slate-400">${item.branchName}</td>
                     <td class="p-5 text-[11px] text-slate-400">${item.date}</td>
                     <td class="p-5 text-blue-600">${item.cash}</td>
                     <td class="p-5">${item.total}</td>
-                    <td class="p-5 ${parseFloat(item.diff) < 0 ? 'text-red-500' : 'text-green-500'}">${item.diff}</td>
+                    <td class="p-5 ${+item.diff < 0 ? 'text-red-500' : 'text-green-500'}">${item.diff}</td>
                     <td class="p-5 text-center">
-                        <button onclick='printNow(${JSON.stringify(item)})' class="bg-blue-50 text-blue-700 px-5 py-2 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all shadow-sm">🖨️ طباعة ريسيت</button>
+                        <button onclick='printSingle(${JSON.stringify(item)})' class="bg-blue-50 text-blue-700 px-4 py-1.5 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all">طبع</button>
                     </td>
                 `;
-                table.appendChild(tr);
+                body.appendChild(tr);
             });
 
-            document.getElementById("totalCashView").innerText = gCash.toLocaleString();
-            document.getElementById("totalInstaView").innerText = gInsta.toLocaleString();
-            document.getElementById("countInstaView").innerText = cInsta;
-            document.getElementById("totalWalletView").innerText = gWall.toLocaleString();
-            document.getElementById("countWalletView").innerText = cWall;
-            document.getElementById("totalVisaView").innerText = gVisa.toLocaleString();
-            document.getElementById("countVisaView").innerText = cVisa;
+            document.getElementById("stCash").innerText = tCash.toLocaleString();
+            document.getElementById("stInsta").innerText = tInsta.toLocaleString();
+            document.getElementById("stInstaCount").innerText = cInsta;
+            document.getElementById("stWallet").innerText = tWallet.toLocaleString();
+            document.getElementById("stWalletCount").innerText = cWallet;
+            document.getElementById("stVisa").innerText = tVisa.toLocaleString();
+            document.getElementById("stVisaCount").innerText = cVisa;
         });
     }
 
     function showDetails(item, rowElement) {
         const panel = document.getElementById("detailsPanel");
         const content = document.getElementById("detailsContent");
-        
-        document.querySelectorAll("#reportsTable tr").forEach(tr => tr.classList.remove('selected-row'));
+        document.querySelectorAll("#mainTableBody tr").forEach(tr => tr.classList.remove('selected-row'));
         rowElement.classList.add('selected-row');
-
         panel.classList.remove("hidden");
         content.innerHTML = `
             ${renderSubTableHTML("الفيزا والباتشات", item.visa, 'v')}
@@ -284,93 +286,103 @@
 
     function closeDetails() {
         document.getElementById("detailsPanel").classList.add("hidden");
-        document.querySelectorAll("#reportsTable tr").forEach(tr => tr.classList.remove('selected-row'));
+        document.querySelectorAll("#mainTableBody tr").forEach(tr => tr.classList.remove('selected-row'));
     }
 
     function renderSubTableHTML(title, arr, mode) {
         if(!arr || arr.length === 0) return `<div class="bg-slate-50 p-4 rounded-2xl text-center text-slate-400 font-bold">${title}: لا يوجد</div>`;
         let h = `<div class="bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
-            <div class="bg-slate-800 text-white p-3 text-sm font-black text-center">${title}</div>
-            <table class="w-full text-xs text-right">
+            <div class="bg-slate-800 text-white p-3 text-xs font-black text-center">${title}</div>
+            <table class="w-full text-[11px] text-right">
                 <thead><tr class="bg-slate-50 border-b">`;
         if(mode==='v') h += `<th class="p-2">باتش</th><th class="p-2">مبلغ</th><th class="p-2">عدد</th>`;
-        else if(mode==='t') h += `<th class="p-2">مبلغ</th><th class="p-2">رقم</th><th class="p-2">اسم</th>`;
-        else h += `<th class="p-2">مبلغ</th><th class="p-2">بيان</th><th class="p-2">مسؤول</th>`;
+        else if(mode==='t') h += `<th class="p-2">مبلغ</th><th class="p-2">رقم</th>`;
+        else h += `<th class="p-2">مبلغ</th><th class="p-2">بيان</th>`;
         h += `</tr></thead><tbody>`;
         arr.forEach(x => {
             h += `<tr class="border-b">`;
             if(mode==='v') h += `<td class="p-2">${x.batch}</td><td class="p-2">${x.amount}</td><td class="p-2">${x.count}</td>`;
-            else if(mode==='t') h += `<td class="p-2">${x.amount}</td><td class="p-2 text-slate-400">${x.mobile}</td><td class="p-2">${x.name}</td>`;
-            else h += `<td class="p-2">${x.amount}</td><td class="p-2">${x.note}</td><td class="p-2 text-slate-400">${x.user}</td>`;
+            else if(mode==='t') h += `<td class="p-2">${x.amount}</td><td class="p-2 text-slate-400">${x.mobile||''}</td>`;
+            else h += `<td class="p-2">${x.amount}</td><td class="p-2">${x.note||''}</td>`;
             h += `</tr>`;
         });
-        h += `<tr class="bg-blue-50 font-black"><td colspan="2" class="p-2">إجمالي ${title}</td><td class="p-2">${sum(arr)}</td></tr></tbody></table></div>`;
+        h += `<tr class="bg-blue-50 font-black"><td colspan="${mode==='v'?'2':'1'}" class="p-2">إجمالي</td><td class="p-2">${sum(arr)}</td></tr></tbody></table></div>`;
         return h;
     }
 
-    // وظيفة الطباعة الحرارية 80mm
-    window.printNow = function(d) {
+    function toggleSelectAll(master) {
+        document.querySelectorAll(".row-check").forEach(c => c.checked = master.checked);
+        updateSelectedCount();
+    }
+
+    function updateSelectedCount() {
+        const count = document.querySelectorAll(".row-check:checked").length;
+        const bulk = document.getElementById("bulkActions");
+        const countLabel = document.getElementById("selectedCount");
+        if(count > 0) { bulk.classList.remove("hidden"); countLabel.innerText = `تم تحديد ${count} ورديات`; }
+        else { bulk.classList.add("hidden"); }
+    }
+
+    function generateDailyReport(type) {
+        const selectedKeys = Array.from(document.querySelectorAll(".row-check:checked")).map(c => c.value);
+        const selectedData = fetchedRecords.filter(r => selectedKeys.includes(r.key));
+        if(selectedData.length === 0) return;
+
+        let agg = {
+            cash: 0, actual: 0, total: 0, diff: 0,
+            insta: [], wallet: [], visa: [], purchases: [], expenses: [],
+            branchNames: new Set(), date: selectedData[0].date
+        };
+
+        selectedData.forEach(d => {
+            agg.cash += (+d.cash||0); agg.actual += (+d.actual||0);
+            agg.total += (+d.total||0); agg.diff += (+d.diff||0);
+            if(d.insta) agg.insta.push(...d.insta);
+            if(d.wallet) agg.wallet.push(...d.wallet);
+            if(d.visa) agg.visa.push(...d.visa);
+            if(d.purchases) agg.purchases.push(...d.purchases);
+            if(d.expenses) agg.expenses.push(...d.expenses);
+            agg.branchNames.add(d.branchName);
+        });
+
+        if(type === 'print') printThermal(agg, true);
+        else sendToWhatsapp(agg);
+    }
+
+    function sendToWhatsapp(data) {
+        let text = `📦 *تقرير مبيعات مجمع (v5.1)*\n`;
+        text += `📅 التاريخ: ${data.date}\n`;
+        text += `🏢 الفروع: ${Array.from(data.branchNames).join(" - ")}\n`;
+        text += `--------------------------\n`;
+        text += `💰 كاش: ${data.cash}\n`;
+        text += `💳 فيزا: ${sum(data.visa)} (ع: ${countOperations(data.visa, true)})\n`;
+        text += `📱 انستا: ${sum(data.insta)} (ع: ${countOperations(data.insta)})\n`;
+        text += `👛 محافظ: ${sum(data.wallet)} (ع: ${countOperations(data.wallet)})\n`;
+        text += `--------------------------\n`;
+        text += `✅ الفعلي: ${data.actual}\n`;
+        text += `📊 الإجمالي: ${data.total}\n`;
+        text += `⚠️ الفرق: ${data.diff}\n`;
+        window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+    }
+
+    function printSingle(d) { printThermal(d, false); }
+
+    function printThermal(d, isAgg) {
         const area = document.getElementById("thermalArea");
+        const title = isAgg ? `تجميع: ${Array.from(d.branchNames).join(", ")}` : `فرع: ${d.branchName}`;
         
         area.innerHTML = `
-            <img src="${logoUrl}" class="header-logo" alt="Logo">
-            <div class="header-branch">فرع: ${d.branchName}</div>
-            
-            <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:13px; margin-bottom:4px;">
-                <span>التاريخ: ${d.date}</span>
-                <span>اليوم: ${d.day}</span>
+            <img src="${logoUrl}" class="header-logo">
+            <div class="header-branch">${title}</div>
+            <div style="text-align:center; font-weight:bold; font-size:13px; margin-bottom:10px;">
+                ${isAgg ? '--- تقرير يومي مجمع ---' : `رقم الدرج: #${d.drawer}`} <br> التاريخ: ${d.date}
             </div>
-            <div style="font-weight:bold; font-size:13px; margin-bottom:10px;">رقم الدرج: #${d.drawer}</div>
 
             <table class="receipt-table" style="font-size:16px;">
                 <tr style="background:#eee"><th>البيان</th><th>القيمة</th></tr>
-                <tr><td>إجمالي النقدي (كاش)</td><td>${d.cash}</td></tr>
-                <tr><td>انستا باي</td><td>${sum(d.insta)}</td></tr>
-                <tr><td>محافظ إلكترونية</td><td>${sum(d.wallet)}</td></tr>
-                <tr><td>فيزا مبيعات</td><td>${sum(d.visa)}</td></tr>
+                <tr><td>إجمالي النقدي</td><td>${d.cash}</td></tr>
+                <tr><td>انستا باي (ع:${countOperations(d.insta)})</td><td>${sum(d.insta)}</td></tr>
+                <tr><td>محافظ (ع:${countOperations(d.wallet)})</td><td>${sum(d.wallet)}</td></tr>
+                <tr><td>فيزا مبيعات (ع:${countOperations(d.visa, true)})</td><td>${sum(d.visa)}</td></tr>
                 <tr style="background:#f0f0f0; font-size:20px;"><td>المبلغ الفعلي</td><td>${d.actual}</td></tr>
-                <tr style="font-size:18px;"><td>إجمالي الحساب</td><td>${d.total}</td></tr>
-                <tr style="font-size:18px; color:${parseFloat(d.diff) < 0 ? 'red' : 'green'}"><td>الفرق</td><td>${d.diff}</td></tr>
-            </table>
-
-            ${renderSubTablePrint("الفيزا والباتشات", d.visa, 'v')}
-            ${renderSubTablePrint("انستا باي", d.insta, 't')}
-            ${renderSubTablePrint("المحافظ الذكية", d.wallet, 't')}
-            ${renderSubTablePrint("المشتريات", d.purchases, 'e')}
-            ${renderSubTablePrint("المصروفات", d.expenses, 'e')}
-
-            <div class="footer-sigs">
-                <div>توقيع المسؤول: ${d.drawerManager}</div>
-                <div>توقيع المراجع: ${d.reviewer}</div>
-            </div>
-
-            <div style="text-align:center; font-size:9px; margin-top:20px; border-top:1px solid #ddd; padding-top:5px;">
-                تم استخراج التقرير آلياً: ${new Date().toLocaleString('ar-EG')}
-            </div>
-        `;
-
-        window.print();
-    }
-
-    function renderSubTablePrint(title, arr, mode) {
-        if(!arr || arr.length === 0) return "";
-        let h = `<div style="text-align:center; font-weight:900; margin-top:12px; border-top:1.2px dashed #000; padding-top:4px;">-- ${title} --</div>`;
-        h += `<table class="receipt-table"><thead><tr>`;
-        if(mode==='v') h += `<th>باتش</th><th>قيمة</th><th>ع</th>`;
-        else if(mode==='t') h += `<th>قيمة</th><th>رقم</th><th>اسم</th>`;
-        else h += `<th>قيمة</th><th>البيان</th><th>مسؤول</th>`;
-        h += `</tr></thead><tbody>`;
-        arr.forEach(x => {
-            h += `<tr>`;
-            if(mode==='v') h += `<td>${x.batch}</td><td>${x.amount}</td><td>${x.count}</td>`;
-            else if(mode==='t') h += `<td>${x.amount}</td><td>${x.mobile}</td><td>${x.name}</td>`;
-            else h += `<td>${x.amount}</td><td>${x.note}</td><td>${x.user}</td>`;
-            h += `</tr>`;
-        });
-        h += `<tr style="background:#eee"><td colspan="${mode==='v'||mode==='t'?'2':'1'}">إجمالي ${title}</td><td>${sum(arr)}</td></tr></tbody></table>`;
-        return h;
-    }
-</script>
-</body>
-</html>
-
+                <tr style="font-size:1
