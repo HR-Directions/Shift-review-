@@ -234,7 +234,7 @@
                 tr.onclick = (e) => { if(!e.target.classList.contains('row-check') && e.target.tagName !== 'BUTTON') showDetails(item, tr); };
                 tr.innerHTML = `
                     <td class="p-5 text-center"><input type="checkbox" value="${item.key}" onchange="updateSelectedCount()" class="row-check checkbox-custom"></td>
-                    <td class="p-5">#${item.drawer}</td>
+                    <td class="p-5">${item.drawer}</td>
                     <td class="p-5 text-slate-400">${item.branchName}</td>
                     <td class="p-5 text-[11px]">${item.date}</td>
                     <td class="p-5 text-blue-600">${item.cash}</td>
