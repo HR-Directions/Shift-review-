@@ -670,7 +670,7 @@
             filteredKeys.forEach((k, i) => {
                 const r = data[k];
                 const rCount = Number(r.count) || 1;
-                const orderDetails = r.orderNumber ? `<span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">رقم: ${r.orderNumber} ${r.orderValue ? ` | ق: ${r.orderValue}` : ''}</span>` : '<span class="text-gray-300">-</span>';
+                const orderDetails = r.orderNumber ? `<span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">رقم: ${r.orderNumber} ${r.orderValue ? ` | قيمة: ${r.orderValue}` : ''}</span>` : '<span class="text-gray-300">-</span>';
 
                 tbody.innerHTML += `
                 <tr class="border-b hover:bg-blue-50">
