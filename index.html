@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -75,6 +76,7 @@
                 </div>
                 <nav class="flex flex-wrap justify-center gap-2 bg-blue-900 p-1 rounded-lg" id="mainNav">
                     <button onclick="switchTab('mainTab')" id="btn-mainTab" class="nav-btn px-4 py-2 rounded-md font-semibold transition-all duration-200 bg-white text-primary shadow-sm"><i class="fa-solid fa-house ml-2"></i>الرئيسية</button>
+                    <button onclick="openPendingOrdersModal()" class="px-4 py-2 rounded-md font-semibold text-white hover:bg-white/20 transition-all bg-amber-500"><i class="fa-solid fa-clock-rotate-left ml-2"></i>الأوردرات المعلقة</button>
                     <button onclick="switchTab('adminTab')" id="btn-adminTab" class="nav-btn hidden px-4 py-2 rounded-md font-semibold transition-all duration-200 hover:bg-white/20 text-white"><i class="fa-solid fa-gears ml-2"></i>الإدارة</button>
                     <button onclick="logout()" class="px-4 py-2 rounded-md font-semibold text-red-300 hover:bg-red-500 hover:text-white transition-all"><i class="fa-solid fa-sign-out-alt ml-2"></i>خروج</button>
                 </nav>
@@ -188,17 +190,18 @@
                         <div id="delegatesSubTab" class="sub-tab-content">
                             <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-6">
                                 <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fa-solid fa-plus text-secondary ml-2"></i>إضافة مندوب جديد</h2>
-                                <form onsubmit="handleAddDelegate(event)" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <form onsubmit="handleAddDelegate(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-4">
                                     <input type="text" id="delName" required placeholder="اسم المندوب" class="px-4 py-2 border rounded-lg outline-none">
+                                    <input type="text" id="delPhone" required placeholder="رقم هاتف المندوب" class="px-4 py-2 border rounded-lg outline-none">
                                     <input type="text" id="delCode" required placeholder="كود المندوب" class="px-4 py-2 border rounded-lg outline-none">
                                     <select id="delBranch" required class="px-4 py-2 border rounded-lg outline-none">
                                         <option value="">-- اختر الفرع التابع له --</option>
                                     </select>
-                                    <button type="submit" class="sm:col-span-3 bg-primary text-white py-2 rounded-lg font-bold">حفظ المندوب</button>
+                                    <button type="submit" class="sm:col-span-4 bg-primary text-white py-2 rounded-lg font-bold">حفظ المندوب</button>
                                 </form>
                             </div>
                             <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                                <table class="w-full text-right"><thead class="bg-gray-50"><tr><th class="p-3">الكود</th><th class="p-3">الاسم</th><th class="p-3">الفرع التابع</th><th class="p-3 text-center">تعديل</th></tr></thead><tbody id="delegatesTableBody"></tbody></table>
+                                <table class="w-full text-right"><thead class="bg-gray-50"><tr><th class="p-3">الكود</th><th class="p-3">الاسم</th><th class="p-3">رقم الهاتف</th><th class="p-3">الفرع التابع</th><th class="p-3 text-center">تعديل</th></tr></thead><tbody id="delegatesTableBody"></tbody></table>
                             </div>
                         </div>
 
@@ -227,6 +230,7 @@
                                         <th class="p-3">مُحول إلى</th>
                                         <th class="p-3 text-center">الكمية</th>
                                         <th class="p-3">تفاصيل الأوردر</th>
+                                        <th class="p-3">حالة ومدة التوصيل</th>
                                     </tr></thead>
                                     <tbody id="reportTableBody"></tbody>
                                 </table>
@@ -239,6 +243,7 @@
         </main>
     </div>
 
+    <!-- Modals -->
     <div id="editModal" class="modal">
         <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
             <div class="flex justify-between items-center mb-4">
@@ -265,6 +270,10 @@
                     <input type="number" id="orderValueInput" placeholder="أدخل قيمة الأوردر" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-secondary outline-none">
                 </div>
                 <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-1">رقم واتساب العميل</label>
+                    <input type="tel" id="orderWhatsappInput" placeholder="مثال: 01xxxxxxxxx" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none text-left" dir="ltr">
+                </div>
+                <div>
                     <label class="block text-sm font-semibold text-gray-600 mb-1">الكمية / يحسب بمقدار</label>
                     <select id="orderCountInput" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-secondary outline-none font-bold">
                         <option value="1">1</option><option value="2">2</option><option value="3">3</option>
@@ -273,9 +282,12 @@
                         <option value="10">10</option>
                     </select>
                 </div>
-                <div class="flex gap-3 pt-2">
-                    <button onclick="saveOrderData()" class="flex-1 bg-primary text-white py-2 rounded-lg font-bold hover:bg-blue-800">حفظ وحساب</button>
-                    <button onclick="closeOrderModal()" class="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg font-bold hover:bg-gray-300">إلغاء</button>
+                <div class="flex flex-col gap-2 pt-2">
+                    <div class="flex gap-2">
+                        <button onclick="saveOrderData(false)" class="flex-1 bg-primary text-white py-2 rounded-lg font-bold hover:bg-blue-800 text-sm">حفظ وحساب</button>
+                        <button onclick="saveOrderData(true)" class="flex-1 bg-green-500 text-white py-2 rounded-lg font-bold hover:bg-green-600 flex items-center justify-center gap-1 text-sm"><i class="fa-brands fa-whatsapp"></i> حفظ وإرسال</button>
+                    </div>
+                    <button onclick="closeOrderModal()" class="w-full bg-gray-200 text-gray-800 py-2 rounded-lg font-bold hover:bg-gray-300">إلغاء</button>
                 </div>
             </div>
         </div>
@@ -289,6 +301,32 @@
             <div class="flex gap-2">
                 <button onclick="saveManualWeight()" class="flex-1 bg-secondary text-white py-2 rounded-lg font-bold hover:bg-blue-600">تأكيد</button>
                 <button onclick="closeWeightModal()" class="flex-1 bg-gray-200 text-gray-800 py-2 rounded-lg font-bold hover:bg-gray-300">إلغاء</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- نافذة الأوردرات المعلقة -->
+    <div id="pendingOrdersModal" class="modal">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-4xl max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4 border-b pb-2">
+                <h2 class="text-xl font-bold text-amber-600"><i class="fa-solid fa-clock-rotate-left ml-2"></i>الأوردرات المعلقة (قيد التوصيل)</h2>
+                <button onclick="closePendingOrdersModal()" class="text-gray-500 hover:text-red-500"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="pendingLoading" class="text-center text-gray-500 py-8 hidden">
+                <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-2"></i><br>جاري جلب الأوردرات...
+            </div>
+            <div class="overflow-auto flex-grow">
+                <table class="w-full text-right border-collapse">
+                    <thead class="bg-gray-50 text-sm sticky top-0">
+                        <tr>
+                            <th class="p-3 border-b">التاريخ والوقت</th>
+                            <th class="p-3 border-b">رقم الأوردر</th>
+                            <th class="p-3 border-b">المندوب</th>
+                            <th class="p-3 border-b text-center">إجراء</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pendingOrdersTableBody"></tbody>
+                </table>
             </div>
         </div>
     </div>
@@ -486,7 +524,7 @@
                 const d = delegates[k];
                 const branchName = d.branchId && branches[d.branchId] ? branches[d.branchId].name : 'غير محدد';
                 
-                if(tbody) tbody.innerHTML += `<tr class="border-b"><td class="p-3 text-secondary font-bold">${d.code}</td><td class="p-3">${d.name}</td><td class="p-3 text-gray-500">${branchName}</td><td class="p-3 text-center"><button onclick="openEditModal('delegate', '${k}')" class="text-secondary hover:text-primary"><i class="fa-solid fa-pen-to-square"></i></button></td></tr>`;
+                if(tbody) tbody.innerHTML += `<tr class="border-b"><td class="p-3 text-secondary font-bold">${d.code}</td><td class="p-3">${d.name}</td><td class="p-3" dir="ltr">${d.phone || '-'}</td><td class="p-3 text-gray-500">${branchName}</td><td class="p-3 text-center"><button onclick="openEditModal('delegate', '${k}')" class="text-secondary hover:text-primary"><i class="fa-solid fa-pen-to-square"></i></button></td></tr>`;
 
                 if(selectRecord) {
                     if (currentUser.role === 'admin' || (currentUser.role === 'branch' && d.branchId === currentUser.id)) {
@@ -555,7 +593,6 @@
             if(!document.getElementById('recordDelegate').value) {
                 return showToast("اختر المندوب أولاً", "error");
             }
-            // إذا كان فرع أوردر، من الأفضل فتح نافذة الأوردر لتسجيل الرقم والقيمة
             if (name.includes('اوردار') || name.includes('أوردر') || name.includes('اوردر')) {
                 openOrderModal(id, name);
             } else {
@@ -569,21 +606,24 @@
             pendingBranchName = name;
             document.getElementById('orderNumberInput').value = '';
             document.getElementById('orderValueInput').value = '';
+            document.getElementById('orderWhatsappInput').value = '';
             document.getElementById('orderCountInput').value = '1';
             document.getElementById('orderModal').classList.add('active');
         }
 
         function closeOrderModal() { document.getElementById('orderModal').classList.remove('active'); }
 
-        function saveOrderData() {
+        function saveOrderData(sendWhatsapp) {
             const orderNum = document.getElementById('orderNumberInput').value.trim();
             const orderVal = document.getElementById('orderValueInput').value.trim();
+            const orderWhatsapp = document.getElementById('orderWhatsappInput').value.trim();
             const count = parseInt(document.getElementById('orderCountInput').value) || 1;
             
             if(!orderNum) return showToast("يرجى إدخال رقم الأوردر", "error");
+            if(sendWhatsapp && !orderWhatsapp) return showToast("يرجى إدخال رقم الواتساب للعميل", "error");
 
             closeOrderModal();
-            recordClick(pendingBranchId, pendingBranchName, count, orderNum, orderVal);
+            recordClick(pendingBranchId, pendingBranchName, count, orderNum, orderVal, orderWhatsapp, sendWhatsapp);
         }
 
         function openWeightModal(id, name) {
@@ -606,10 +646,12 @@
         }
 
         // --- الحفظ الأساسي للسجلات ---
-        async function recordClick(toBranchId, toBranchName, count = 1, orderNum = '', orderVal = '') {
+        async function recordClick(toBranchId, toBranchName, count = 1, orderNum = '', orderVal = '', customerWhatsapp = '', sendWhatsapp = false) {
             const date = document.getElementById('recordDate').value;
             const delId = document.getElementById('recordDelegate').value;
             
+            const isOrder = orderNum !== '';
+
             const rec = {
                 branchId: toBranchId, 
                 branchName: toBranchName,
@@ -621,7 +663,9 @@
                 timestamp: Date.now(),
                 count: count,
                 orderNumber: orderNum,
-                orderValue: orderVal
+                orderValue: orderVal,
+                customerWhatsapp: customerWhatsapp,
+                status: isOrder ? 'pending' : 'completed' // للأوردرات المعلقة
             };
 
             try {
@@ -629,8 +673,40 @@
                 if(res.ok) {
                     showToast(`تم التسجيل بنجاح لـ ${toBranchName} (الكمية: ${count})`);
                     await loadRecords();
+
+                    if(sendWhatsapp) {
+                        sendWhatsappMessage(customerWhatsapp, orderNum, orderVal, delegates[delId]);
+                    }
                 }
             } catch (e) { showToast("خطأ في الحفظ", "error"); }
+        }
+
+        function sendWhatsappMessage(phone, orderNum, orderVal, delegate) {
+            // إعداد رقم الواتساب (إضافة كود الدولة إذا لم يكن موجوداً)
+            let formattedPhone = phone.replace(/\D/g, '');
+            if (formattedPhone.startsWith('01')) {
+                formattedPhone = '2' + formattedPhone;
+            }
+
+            
+            const message = ` تم تسجيل الطلب بنجاح 
+
+\`\`\`
+[ تفاصيل الأوردر ]
+• حالة الطلب : جاري التوصيل 
+• رقم الأوردر: ${orderNum}
+• إجمالي القيمة: ${orderVal ? orderVal + ' ج.م' : 'تحدد عند الاستلام'}
+
+[ بيانات المندوب ]
+• الاسم: ${delegate.name}
+• الهاتف: ${delegate.phone || 'غير مسجل'}
+\`\`\`
+ شكراً لاختياركم صيدليات دكتور وائل حافظ 
+ ، نتمنى لكم دوام الصحة والعافية`;
+            const encodedMsg = encodeURIComponent(message);
+            
+            const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodedMsg}`;
+            window.open(whatsappUrl, '_blank');
         }
 
         async function loadRecords() {
@@ -670,7 +746,12 @@
             filteredKeys.forEach((k, i) => {
                 const r = data[k];
                 const rCount = Number(r.count) || 1;
-                const orderDetails = r.orderNumber ? `<span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded">رقم: ${r.orderNumber} ${r.orderValue ? ` | قيمة: ${r.orderValue} ج.م` : ''}</span>` : '<span class="text-gray-300">-</span>';
+                let orderDetails = '<span class="text-gray-300">-</span>';
+                
+                if (r.orderNumber) {
+                    let statusBadge = r.status === 'delivered' ? '<span class="text-[10px] bg-green-500 text-white px-1 rounded mr-1">تم التوصيل</span>' : '<span class="text-[10px] bg-amber-500 text-white px-1 rounded mr-1">معلق</span>';
+                    orderDetails = `<span class="text-xs bg-amber-100 text-amber-800 px-2 py-1 rounded inline-block">رقم: ${r.orderNumber} ${r.orderValue ? ` | قيمة: ${r.orderValue} ` : ''} ${statusBadge}</span>`;
+                }
 
                 tbody.innerHTML += `
                 <tr class="border-b hover:bg-blue-50">
@@ -718,6 +799,92 @@
             } catch(e) { showToast("خطأ أثناء الحذف", "error"); }
         }
 
+        // --- الأوردرات المعلقة ---
+        async function openPendingOrdersModal() {
+            document.getElementById('pendingOrdersModal').classList.add('active');
+            const tbody = document.getElementById('pendingOrdersTableBody');
+            document.getElementById('pendingLoading').classList.remove('hidden');
+            tbody.innerHTML = '';
+
+            // جلب بيانات اليوم واليومين السابقين كحد أقصى للبحث عن الأوردرات المعلقة
+            const datesToFetch = [];
+            for(let i=0; i<3; i++) {
+                let d = new Date();
+                d.setDate(d.getDate() - i);
+                datesToFetch.push(d.toISOString().split('T')[0]);
+            }
+
+            let pendingOrders = [];
+            
+            try {
+                const results = await Promise.all(datesToFetch.map(d => fetch(`${DB_URL}records/${d}.json`).then(r => r.json())));
+                
+                results.forEach((dayData, index) => {
+                    if(dayData) {
+                        const dateStr = datesToFetch[index];
+                        Object.keys(dayData).forEach(k => {
+                            const r = dayData[k];
+                            // فلترة: يجب أن يكون أوردر، وأن تكون حالته معلقة (pending)، ومطابق للفرع إذا كان فرع
+                            if(r.orderNumber && r.status === 'pending') {
+                                if (currentUser.role === 'admin' || r.sourceBranchId === currentUser.id || (delegates[r.delegateId] && delegates[r.delegateId].branchId === currentUser.id)) {
+                                    pendingOrders.push({ id: k, date: dateStr, ...r });
+                                }
+                            }
+                        });
+                    }
+                });
+
+                pendingOrders.sort((a,b) => b.timestamp - a.timestamp);
+
+                if(pendingOrders.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-gray-500">لا توجد أوردرات معلقة حالياً</td></tr>';
+                } else {
+                    pendingOrders.forEach(r => {
+                        tbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50">
+                            <td class="p-3 text-sm"><div>${r.date}</div><div class="text-xs text-gray-500" dir="ltr">${r.time}</div></td>
+                            <td class="p-3"><span class="font-bold text-amber-700 bg-amber-50 px-2 py-1 rounded">رقم: ${r.orderNumber}</span></td>
+                            <td class="p-3">${r.delegateName}</td>
+                            <td class="p-3 text-center">
+                                <button onclick="markOrderAsDelivered('${r.date}', '${r.id}')" class="bg-green-500 text-white px-3 py-1.5 rounded-lg text-sm font-bold hover:bg-green-600 shadow-sm"><i class="fa-solid fa-check mr-1"></i> تم التوصيل</button>
+                            </td>
+                        </tr>`;
+                    });
+                }
+            } catch(e) {
+                showToast("حدث خطأ في جلب الأوردرات", "error");
+            }
+            document.getElementById('pendingLoading').classList.add('hidden');
+        }
+
+        function closePendingOrdersModal() {
+            document.getElementById('pendingOrdersModal').classList.remove('active');
+        }
+
+        async function markOrderAsDelivered(date, recordId) {
+            if(!confirm("هل أنت متأكد من تسليم هذا الأوردر بنجاح؟")) return;
+            
+            try {
+                await fetch(`${DB_URL}records/${date}/${recordId}.json`, { 
+                    method: 'PATCH', 
+                    body: JSON.stringify({ 
+                        status: 'delivered', 
+                        deliveryTimestamp: Date.now() 
+                    }) 
+                });
+                showToast("تم تحديث حالة الأوردر إلى 'تم التوصيل'");
+                
+                // إعادة تحميل النوافذ المفتوحة
+                openPendingOrdersModal();
+                if(document.getElementById('recordDate').value === date) {
+                    loadRecords();
+                }
+            } catch(e) {
+                showToast("خطأ في تحديث الحالة", "error");
+            }
+        }
+
+
         // --- عمليات التعديل والحفظ الأخرى ---
         async function handleAddAdmin(e) {
             e.preventDefault();
@@ -739,7 +906,13 @@
 
         async function handleAddDelegate(e) {
             e.preventDefault();
-            const d = { name: document.getElementById('delName').value, code: document.getElementById('delCode').value, branchId: document.getElementById('delBranch').value, timestamp: Date.now() };
+            const d = { 
+                name: document.getElementById('delName').value, 
+                phone: document.getElementById('delPhone').value,
+                code: document.getElementById('delCode').value, 
+                branchId: document.getElementById('delBranch').value, 
+                timestamp: Date.now() 
+            };
             await fetch(`${DB_URL}delegates.json`, { method: 'POST', body: JSON.stringify(d) });
             e.target.reset();
             loadAllData();
@@ -766,7 +939,11 @@
                 const d = delegates[id];
                 let branchOptions = '<option value="">-- بدون فرع --</option>';
                 Object.keys(branches).forEach(k => { branchOptions += `<option value="${k}" ${d.branchId===k?'selected':''}>${branches[k].name}</option>`; });
-                fields.innerHTML = `<input type="text" id="editDelName" value="${d.name}" class="w-full px-4 py-2 border rounded-lg mb-3"><input type="text" id="editDelCode" value="${d.code}" class="w-full px-4 py-2 border rounded-lg mb-3"><select id="editDelBranch" class="w-full px-4 py-2 border rounded-lg">${branchOptions}</select>`;
+                fields.innerHTML = `
+                    <input type="text" id="editDelName" value="${d.name}" placeholder="الاسم" class="w-full px-4 py-2 border rounded-lg mb-3">
+                    <input type="text" id="editDelPhone" value="${d.phone || ''}" placeholder="رقم الهاتف" class="w-full px-4 py-2 border rounded-lg mb-3">
+                    <input type="text" id="editDelCode" value="${d.code}" placeholder="الكود" class="w-full px-4 py-2 border rounded-lg mb-3">
+                    <select id="editDelBranch" class="w-full px-4 py-2 border rounded-lg">${branchOptions}</select>`;
             }
             modal.classList.add('active');
         }
@@ -784,7 +961,7 @@
                 data = { ...branches[currentEditId], name: document.getElementById('editBranchName').value, code: document.getElementById('editBranchCode').value, password: document.getElementById('editBranchPass').value };
             } else if (currentEditType === 'delegate') {
                 url = `${DB_URL}delegates/${currentEditId}.json`;
-                data = { ...delegates[currentEditId], name: document.getElementById('editDelName').value, code: document.getElementById('editDelCode').value, branchId: document.getElementById('editDelBranch').value };
+                data = { ...delegates[currentEditId], name: document.getElementById('editDelName').value, phone: document.getElementById('editDelPhone').value, code: document.getElementById('editDelCode').value, branchId: document.getElementById('editDelBranch').value };
             }
 
             try {
@@ -793,6 +970,15 @@
                 closeModal();
                 loadAllData();
             } catch(err) { showToast("خطأ في التعديل", "error"); }
+        }
+
+        function formatTimeDiff(ms) {
+            if(!ms || ms < 0) return '-';
+            const totalMinutes = Math.floor(ms / 60000);
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            if(hours > 0) return `${hours} س و ${minutes} د`;
+            return `${minutes} دقيقة`;
         }
 
         // --- التقارير ---
@@ -837,6 +1023,16 @@
                 
                 const orderDetails = r.orderNumber ? `<span class="font-bold text-amber-700">رقم: ${r.orderNumber}</span><br><span class="text-xs text-gray-500">قيمة: ${r.orderValue||'-'}</span>` : '<span class="text-gray-300">-</span>';
                 
+                let deliveryStatusHtml = '-';
+                if(r.orderNumber) {
+                    if(r.status === 'delivered' && r.deliveryTimestamp) {
+                        const timeTaken = formatTimeDiff(r.deliveryTimestamp - r.timestamp);
+                        deliveryStatusHtml = `<div class="text-green-600 font-bold text-sm"><i class="fa-solid fa-check-circle"></i> تم التوصيل</div><div class="text-xs text-gray-500">المدة: ${timeTaken}</div>`;
+                    } else {
+                        deliveryStatusHtml = `<div class="text-amber-500 font-bold text-sm"><i class="fa-solid fa-clock"></i> قيد التوصيل</div>`;
+                    }
+                }
+
                 tbody.innerHTML += `
                 <tr class="border-b">
                     <td class="p-3 text-sm"><div>${r.date}</div><div class="text-xs text-gray-500" dir="ltr">${r.time}</div></td>
@@ -844,14 +1040,17 @@
                     <td class="p-3 font-bold text-teal-600">${r.branchName}</td>
                     <td class="p-3 text-center"><span class="bg-accent px-2 py-1 text-white font-bold rounded">x${rCount}</span></td>
                     <td class="p-3">${orderDetails}</td>
+                    <td class="p-3">${deliveryStatusHtml}</td>
                 </tr>`;
             });
             
-            if(all.length === 0) tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-gray-500">لا توجد بيانات مطابقة</td></tr>';
+            if(all.length === 0) tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center text-gray-500">لا توجد بيانات مطابقة</td></tr>';
             
             document.getElementById('reportTotalClicks').textContent = reportTotal;
             document.getElementById('reportLoading').classList.add('hidden');
         }
     </script>
 </body>
-                                                                                        </html>
+</html>
+
+```
