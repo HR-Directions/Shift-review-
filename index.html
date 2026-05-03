@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام مقصات</title>
+    <title>نظام مقصات - المطور</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -102,7 +102,7 @@
                     <div class="col-span-1 md:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100 flex flex-col sm:flex-row gap-4 items-start sm:items-end hover:shadow-md transition-shadow">
                         <div class="w-full">
                             <label class="block text-sm font-semibold text-gray-600 mb-2">تاريخ اليوم</label>
-                            <input type="date" id="recordDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition" onchange="loadRecords()">
+                            <input type="date" id="recordDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-secondary outline-none transition font-bold text-gray-800" onchange="loadRecords()">
                         </div>
                         <div class="w-full relative">
                             <label class="block text-sm font-semibold text-gray-600 mb-2">اختر المندوب</label>
@@ -122,11 +122,17 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 mb-8 relative">
                     <div class="flex justify-between items-center mb-4 pb-2 border-b border-gray-100">
                         <h3 class="text-lg font-bold text-gray-800"><i class="fa-solid fa-hand-pointer ml-2 text-secondary"></i>توجيه الحركة (الفروع)</h3>
                         <span class="text-xs font-semibold text-secondary bg-blue-50 px-3 py-1.5 rounded-full border border-blue-100">كليك يمين لتحديد الكمية يدوياً</span>
                     </div>
+                    
+                    <!-- رسالة التحذير للتواريخ السابقة (تظهر للفروع فقط) -->
+                    <div id="pastDateWarning" class="hidden mb-4 p-3 bg-red-50 text-red-600 border border-red-200 rounded-lg text-sm font-bold flex items-center justify-center animate-pulse">
+                        <i class="fa-solid fa-lock ml-2 text-lg"></i> وضع العرض فقط: لا يُسمح بإضافة أو تعديل حركات لتواريخ سابقة (الإدارة فقط تمتلك الصلاحية).
+                    </div>
+
                     <div id="loadingBranches" class="text-center text-gray-500 py-8 hidden">
                         <i class="fa-solid fa-circle-notch fa-spin text-3xl mb-3 text-secondary"></i><br><span class="font-semibold">جاري تحميل البيانات...</span>
                     </div>
@@ -136,9 +142,8 @@
 
                 <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div class="p-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-3">
-                        <h3 class="font-bold text-gray-800 w-full sm:w-auto"><i class="fa-solid fa-table-list ml-2 text-secondary"></i>سجل حركات اليوم</h3>
+                        <h3 class="font-bold text-gray-800 w-full sm:w-auto"><i class="fa-solid fa-table-list ml-2 text-secondary"></i>سجل الحركات</h3>
                         
-                        <!-- إضافة شريط البحث هنا -->
                         <div class="relative w-full sm:w-64">
                             <input type="text" id="mainSearchInput" onkeyup="filterMainTable()" placeholder="بحث برقم الأوردر..." class="w-full px-4 py-2 pr-10 border border-gray-300 rounded-lg focus:border-secondary outline-none text-sm transition font-semibold">
                             <i class="fa-solid fa-search absolute right-3 top-3 text-gray-400"></i>
@@ -235,7 +240,6 @@
                                 </div>
                             </div>
                             
-                            <!-- كارت الإجمالي المالي المحسن -->
                             <div class="grid grid-cols-1 mb-6 text-center">
                                 <div class="bg-gradient-to-r from-teal-600 to-emerald-500 rounded-xl shadow-lg p-8 text-white relative overflow-hidden transform transition hover:-translate-y-1">
                                     <i class="fa-solid fa-money-bill-wave absolute -left-6 -bottom-6 text-7xl opacity-20"></i>
@@ -505,17 +509,15 @@
             window.location.reload();
         }
 
-        // --- نظام التنبيهات الصوتية للأوردرات المتأخرة (أكثر من ساعة) ---
+        // --- نظام التنبيهات الصوتية للأوردرات المتأخرة ---
         let lastAlertTime = 0;
         
-        // إصدار صوت باستخدام Web Audio API لضمان عمله في جميع المتصفحات
         function playAlertSound() {
             try {
                 const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const osc = ctx.createOscillator();
                 const gainNode = ctx.createGain();
                 osc.type = 'sine';
-                // نغمة التنبيه
                 osc.frequency.setValueAtTime(880, ctx.currentTime); 
                 osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.3);
                 gainNode.gain.setValueAtTime(0.1, ctx.currentTime);
@@ -542,14 +544,12 @@
             
             try {
                 for(let dateStr of datesToFetch) {
-                    // الاعتماد على الكاش في الأيام السابقة لتخفيف الحمل
                     let data = await getDayData(dateStr, dateStr === new Date().toISOString().split('T')[0]); 
                     
                     if(data) {
                         const now = Date.now();
                         Object.values(data).forEach(r => {
                             if(r.orderNumber && r.status === 'pending') {
-                                // 1 ساعة = 3600000 ملي ثانية
                                 if((now - r.timestamp) > 3600000) {
                                     if (currentUser.role === 'admin' || r.sourceBranchId === currentUser.id || (delegates[r.delegateId] && delegates[r.delegateId].branchId === currentUser.id)) {
                                          hasOverdue = true;
@@ -568,7 +568,6 @@
                     badgePing.classList.remove('hidden');
                     badgeSolid.classList.remove('hidden');
                     
-                    // تنبيه صوتي وإشعار مرئي (كل 3 دقائق بحد أقصى لتجنب الإزعاج المستمر)
                     if(Date.now() - lastAlertTime > 180000) {
                         playAlertSound();
                         showToast(`تنبيه هام: لديك ${overdueCount} أوردر معلق منذ أكثر من ساعة!`, "error");
@@ -582,24 +581,16 @@
         }
 
 
-        // --- دالة مساعدة لجلب البيانات مع نظام الكاش (تسريع رهيب للتقارير) ---
+        // --- دالة مساعدة لجلب البيانات مع نظام الكاش ---
         async function getDayData(dateStr, forceFetch = false) {
             const todayStr = new Date().toISOString().split('T')[0];
-            
-            // إذا لم يكن اليوم الحالي وكان مسجلاً في الكاش، قم بإرجاعه فوراً
             if(!forceFetch && dateStr !== todayStr && recordsCache[dateStr]) {
                 return recordsCache[dateStr];
             }
-            
             try {
                 const res = await fetch(`${DB_URL}records/${dateStr}.json`);
                 const data = await res.json() || null;
-                
-                // حفظ البيانات في الكاش للأيام الماضية
-                if(dateStr !== todayStr && data) {
-                    recordsCache[dateStr] = data;
-                }
-                
+                if(dateStr !== todayStr && data) { recordsCache[dateStr] = data; }
                 return data;
             } catch (e) {
                 return null;
@@ -680,7 +671,7 @@
             });
         }
 
-        // تم التعديل: إظهار إحصائيات المندوب المختار فقط على أزرار المقصات
+        // --- الميزة المطلوبة: إظهار التحذير وتقييد الفروع للأيام السابقة ---
         function renderBranchButtons() {
             const grid = document.getElementById('branchButtonsGrid');
             grid.innerHTML = '';
@@ -689,14 +680,26 @@
             const records = currentRecords[dateStr] || {};
             const selectedDelegate = document.getElementById('recordDelegate').value;
             
+            // حساب الإحصائيات للمندوب المحدد فقط
             const branchStats = {};
             Object.values(records).forEach(r => {
-                // فلترة: إذا تم اختيار مندوب، احسب فقط ضغطاته. إذا لم يتم اختيار مندوب، احسب للكل.
                 if(!selectedDelegate || r.delegateId === selectedDelegate) {
                     branchStats[r.branchId] = (branchStats[r.branchId] || 0) + (Number(r.count) || 1);
                 }
             });
             
+            // التحقق مما إذا كان المستخدم فرعاً وحاول اختيار تاريخ سابق
+            const todayStr = new Date().toISOString().split('T')[0];
+            const isPastDate = dateStr !== todayStr;
+            const isBranchRestricted = isPastDate && currentUser.role !== 'admin';
+
+            const warningMsg = document.getElementById('pastDateWarning');
+            if (isBranchRestricted) {
+                warningMsg.classList.remove('hidden');
+            } else {
+                warningMsg.classList.add('hidden');
+            }
+
             let visibleCount = 0;
             const sortedKeys = Object.keys(branches).sort((a, b) => {
                 const countA = branchStats[a] || 0;
@@ -713,13 +716,22 @@
                 visibleCount++;
                 
                 const isOrder = b.name.includes('اوردار') || b.name.includes('أوردر') || b.name.includes('اوردر');
-                const btnClasses = isOrder 
-                    ? "bg-gradient-to-b from-amber-50 to-orange-50 border-2 border-amber-400 text-amber-700 hover:from-amber-400 hover:to-orange-500 hover:border-transparent hover:text-white hover:shadow-lg" 
-                    : "bg-white border-2 border-blue-200 text-secondary hover:bg-gradient-to-b hover:from-blue-500 hover:to-primary hover:border-transparent hover:text-white hover:shadow-lg";
+                
+                // إضافة فئات الـ CSS لتوضيح أن الزر غير مفعل (إن كان مقيداً)
+                let btnClasses = isOrder 
+                    ? "bg-gradient-to-b from-amber-50 to-orange-50 border-2 border-amber-400 text-amber-700 hover:from-amber-400 hover:to-orange-500 hover:border-transparent hover:text-white" 
+                    : "bg-white border-2 border-blue-200 text-secondary hover:bg-gradient-to-b hover:from-blue-500 hover:to-primary hover:border-transparent hover:text-white";
+                
+                if(isBranchRestricted) {
+                    btnClasses += " opacity-50 cursor-not-allowed filter grayscale";
+                } else {
+                    btnClasses += " hover:shadow-lg active:scale-95";
+                }
+
                 const icon = isOrder ? "fa-box-open text-2xl" : "fa-shop text-xl";
 
                 grid.innerHTML += `
-                    <button onclick="handleBranchLeftClick('${k}', '${b.name}')" oncontextmenu="handleBranchRightClick(event, '${k}', '${b.name}')" class="${btnClasses} font-bold py-5 px-2 rounded-xl transition-all duration-300 shadow-sm relative overflow-hidden flex flex-col items-center group transform active:scale-95">
+                    <button onclick="handleBranchLeftClick('${k}', '${b.name}')" oncontextmenu="handleBranchRightClick(event, '${k}', '${b.name}')" class="${btnClasses} font-bold py-5 px-2 rounded-xl transition-all duration-300 shadow-sm relative overflow-hidden flex flex-col items-center group transform">
                         ${count > 0 ? `<span class="absolute top-0 right-0 bg-accent text-white text-xs px-2.5 py-1 rounded-bl-xl font-bold shadow-sm z-10">${count}</span>` : ''}
                         <i class="fa-solid ${icon} mb-2 group-hover:scale-110 transition-transform"></i>
                         <span class="tracking-wide">${b.name}</span>
@@ -728,14 +740,26 @@
             document.getElementById('emptyBranchesMsg').classList.toggle('hidden', visibleCount === 0);
         }
 
-        // عند تغيير المندوب من القائمة
         function handleDelegateChange() {
             updateDelegateTotal();
-            renderBranchButtons(); // تحديث أرقام المقصات لتخص المندوب فقط
+            renderBranchButtons(); 
         }
 
-        // --- تفاعلات الفروع (كليك شمال / يمين) ---
+        // --- دوال التحقق من تاريخ اليوم قبل الإضافة ---
+        function isDateRestricted() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const selectedDateStr = document.getElementById('recordDate').value;
+            if (selectedDateStr !== todayStr && currentUser.role !== 'admin') {
+                showToast("عذراً! الإضافة متاحة فقط في تاريخ اليوم. الإدارة تمتلك الصلاحية للإضافة بأثر رجعي.", "error");
+                return true;
+            }
+            return false;
+        }
+
         function handleBranchLeftClick(id, name) {
+            // منع الإضافة إذا كان التاريخ قديماً والمستخدم مجرد "فرع"
+            if (isDateRestricted()) return;
+
             if(!document.getElementById('recordDelegate').value) {
                 document.getElementById('recordDelegate').focus();
                 return showToast("يجب اختيار المندوب أولاً قبل الإرسال", "error");
@@ -749,6 +773,9 @@
 
         function handleBranchRightClick(e, id, name) {
             e.preventDefault(); 
+            // منع الإضافة إذا كان التاريخ قديماً والمستخدم مجرد "فرع"
+            if (isDateRestricted()) return;
+
             if(!document.getElementById('recordDelegate').value) {
                 document.getElementById('recordDelegate').focus();
                 return showToast("يجب اختيار المندوب أولاً", "error");
@@ -870,11 +897,9 @@
         async function loadRecords() {
             const date = document.getElementById('recordDate').value;
             try {
-                // هنا للبيانات اليومية نجلب طازج بدون كاش
                 const data = await getDayData(date, true); 
                 currentRecords[date] = data || {};
                 
-                // مسح حقل البحث عند تغيير اليوم
                 document.getElementById('mainSearchInput').value = '';
                 
                 renderRecordsTable(date);
@@ -882,7 +907,6 @@
             } catch (e) {}
         }
 
-        // تم التحديث لدعم فلترة البحث برقم الأوردر
         function filterMainTable() {
             const date = document.getElementById('recordDate').value;
             const searchTerm = document.getElementById('mainSearchInput').value.trim().toLowerCase();
@@ -903,7 +927,6 @@
                 return record.sourceBranchId === currentUser.id;
             });
 
-            // تطبيق البحث إن وُجد
             if(searchTerm) {
                 filteredKeys = filteredKeys.filter(k => {
                     const r = data[k];
@@ -913,7 +936,6 @@
             
             filteredKeys.sort((a,b) => data[b].timestamp - data[a].timestamp);
             
-            // حساب الإجمالي لكل الحركات (لا يتأثر بالبحث)
             let totalCounter = 0;
             Object.keys(data).forEach(k => { totalCounter += (Number(data[k].count) || 1); });
             document.getElementById('totalClicksCounter').textContent = totalCounter;
@@ -997,7 +1019,6 @@
             let pendingOrders = [];
             
             try {
-                // استخدام نظام الكاش للحصول على البيانات بسرعة البرق
                 const results = await Promise.all(datesToFetch.map(d => getDayData(d, d === new Date().toISOString().split('T')[0])));
                 
                 results.forEach((dayData, index) => {
@@ -1014,14 +1035,14 @@
                     }
                 });
 
-                pendingOrders.sort((a,b) => a.timestamp - b.timestamp); // ترتيب الأقدم أولاً
+                pendingOrders.sort((a,b) => a.timestamp - b.timestamp); 
 
                 if(pendingOrders.length === 0) {
                     tbody.innerHTML = '<tr><td colspan="5" class="p-10 text-center text-gray-500 bg-gray-50"><i class="fa-solid fa-clipboard-check text-4xl text-green-400 mb-3 block"></i><span class="font-bold text-lg">ممتاز! لا توجد أوردرات معلقة حالياً.</span></td></tr>';
                 } else {
                     const now = Date.now();
                     pendingOrders.forEach(r => {
-                        const isOverdue = (now - r.timestamp) > 3600000; // متأخر أكثر من ساعة
+                        const isOverdue = (now - r.timestamp) > 3600000; 
                         const overdueClass = isOverdue ? 'overdue-order bg-red-50/40 border-l-4 border-l-red-500' : '';
                         const overdueWarning = isOverdue ? `<div class="text-xs font-bold text-red-600 mt-1 animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i> متأخر (أكثر من ساعة)</div>` : '';
 
@@ -1060,7 +1081,7 @@
                 });
                 showToast("تم التحديث! الأوردر الآن 'مُسلم'");
                 
-                checkOverdueOrdersBackground(); // تحديث شارة التنبيهات الحمراء
+                checkOverdueOrdersBackground(); 
                 openPendingOrdersModal();
                 if(document.getElementById('recordDate').value === date) {
                     loadRecords();
@@ -1165,7 +1186,6 @@
             return `${minutes} دقيقة`;
         }
 
-        // --- التقارير المتقدمة السريعة جداً (بالاعتماد على الكاش) ---
         async function generateReport() {
             const start = document.getElementById('repFromDate').value;
             const end = document.getElementById('repToDate').value;
@@ -1181,7 +1201,6 @@
                 curr.setDate(curr.getDate() + 1);
             }
             
-            // استخدام الكاش (getDayData) وتسريع تحميل الأيام المتعددة بـ Promise.all
             try {
                 const res = await Promise.all(dates.map(d => getDayData(d, d === new Date().toISOString().split('T')[0])));
                 res.forEach((day, i) => {
@@ -1215,7 +1234,6 @@
                             const timeTaken = formatTimeDiff(r.deliveryTimestamp - r.timestamp);
                             deliveryStatusHtml = `<div class="text-green-600 font-bold text-sm bg-green-50 inline-block px-2 py-1 rounded border border-green-100"><i class="fa-solid fa-check-double"></i> تم التوصيل</div><div class="text-xs font-bold text-gray-500 mt-1"><i class="fa-regular fa-clock"></i> استغرق: ${timeTaken}</div>`;
                         } else {
-                            // تمييز المتأخر هنا أيضاً في التقرير
                             const isOverdue = (Date.now() - r.timestamp) > 3600000;
                             if(isOverdue) {
                                 deliveryStatusHtml = `<div class="text-red-600 font-bold text-sm bg-red-50 inline-block px-2 py-1 rounded border border-red-200 shadow-sm animate-pulse"><i class="fa-solid fa-triangle-exclamation"></i> متأخر جداً</div>`;
@@ -1255,5 +1273,6 @@
     </script>
 </body>
 </html>
+
 
 
