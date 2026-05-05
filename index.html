@@ -896,7 +896,7 @@
             let formattedPhone = phone.replace(/\D/g, '');
             if (formattedPhone.startsWith('01')) formattedPhone = '2' + formattedPhone;
             let delegatePhoneStr = delegate.phone ? delegate.phone : 'غير مسجل';
-            const message = ` تم تسجيل الطلب بنجاح \n\n*\[ تفاصيل الأوردر \]*\n• حالة الطلب : جاري التوصيل \n• رقم الأوردر: ${orderNum}\n• إجمالي القيمة: ${orderVal ? orderVal + ' ج.م' : 'تحدد عند الاستلام'}\n\n*\[ بيانات المندوب \]*\n• الاسم: ${delegate.name}\n• الهاتف: ${delegatePhoneStr}\n\n شكراً لاختياركم صيدليات دكتور وائل حافظ ⚕️\n نتمنى لكم دوام الصحة والعافية `;
+            const message = ` تم تسجيل الطلب بنجاح \n\n*\[ تفاصيل الأوردر \]*\n• حالة الطلب : جاري التوصيل \n• رقم الأوردر: ${orderNum}\n• إجمالي القيمة: ${orderVal ? orderVal + ' ج.م' : 'تحدد عند الاستلام'}\n\n*\[ بيانات المندوب \]*\n• الاسم: ${delegate.name}\n• الهاتف: ${delegatePhoneStr}\n\n شكراً لاختياركم صيدليات دكتور وائل حافظ \n نتمنى لكم دوام الصحة والعافية `;
             window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
         }
 
